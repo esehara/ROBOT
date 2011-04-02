@@ -33,28 +33,28 @@ class Player():
 		surface = pygame.Surface((16,16))
 		surface.blit(self.image,(0,0),(0,0,16,16))
 		surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
-		surface.convert()
+		surface = surface.convert()
 		self.walk.update({'right_stop':surface})
 		
 		##Right_Walk
 		surface = pygame.Surface((16,16))
 		surface.blit(self.image,(0,0),(16,0,16,16))
 		surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
-		surface.convert()
+		surface = surface.convert()
 		self.walk.update({'right_move':surface})
 		
 		##Left_Stop
 		surface = pygame.Surface((16,16))
 		surface.blit(self.image,(0,0),(0,16,16,16))
 		surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
-		surface.convert()
+		surface = surface.convert()
 		self.walk.update({'left_stop':surface})
 		
 		##Right_Walk
 		surface = pygame.Surface((16,16))
 		surface.blit(self.image,(0,0),(16,16,16,16))
 		surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
-		surface.convert()
+		surface = surface.convert()
 		self.walk.update({'left_move':surface})
 
 		self.image = self.walk['right_stop']
@@ -73,6 +73,24 @@ class Player():
 				self.image = self.walk['left_move']
 		if self.walkrate > 12:
 			self.walkrate = 0
+
+class Background():
+    def __init__(self,filename):
+        image = load_image(filename)
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.images = []
+        
+        for i in range(self.rect.w / 16):
+            surface = pygame.Surface((16,16))
+            surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            surface = surface.convert()
+            self.images.push(surface)
+
+class Far():
+    def __init__(self,filename):
+		image = load_image(filename)
+		self.rect = self.image.get_rect(topleft=(x,y))
+		self.images = []
 
 class Game:
 	def __init__(self):
@@ -105,6 +123,7 @@ class Game:
 	def mainLoop(self):
 		global player
 		player = Player("./img/robot.png",0,0)
+		background = Background("./img/background.png",0,0)
 		while not self.quit:
 			for event in pygame.event.get():
 				if event.type == QUIT:
@@ -118,3 +137,4 @@ class Game:
 if __name__ == '__main__':
 	game = Game()
 	game.mainLoop()
+
