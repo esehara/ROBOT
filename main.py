@@ -104,6 +104,24 @@ class Player():
             self.walkrate = 0
 
 
+class Background():
+    def __init__(self,filename):
+        image = load_image(filename)
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.images = []
+        
+        for i in range(self.rect.w / 16):
+            surface = pygame.Surface((16,16))
+            surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            surface = surface.convert()
+            self.images.push(surface)
+
+class Far():
+    def __init__(self,filename):
+        image = load_image(filename)
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.images = []
+
 class Game:
     def __init__(self):
         pygame.init()
