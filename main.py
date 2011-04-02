@@ -92,7 +92,7 @@ class Game:
 	
 	def keyevent(self):
 		keyin = pygame.key.get_pressed()
-		player.walking = False000			
+		player.walking = False			
 		if keyin[K_RIGHT]:		
 			player.muki = 'RIGHT'
 			player.rect.move_ip(2,0)
