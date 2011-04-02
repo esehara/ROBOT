@@ -1,6 +1,7 @@
 # -*- encording : UTF-8 -*-
 import pygame
 from pygame.locals import * 
+import json
 import sys
 
 SCR = (640,480)
@@ -129,9 +130,13 @@ class Far():
             self.images.append(surface)
 
 class Landscape():
-    def __init__(self,far,background):
-        self.far = far
-        self.background = background
+    def __init__(self,background_filename,far_filename):
+        f = open(background_filename)
+        self.background_grid = json.load(f)
+        f.close()
+        f = open(far_filename)
+        self.far_grid = json.load(f)
+        f.close()
 
 class Game:
     def __init__(self):
@@ -140,13 +145,25 @@ class Game:
         pygame.display.set_caption(CAP)
         self.clock = pygame.time.Clock()
         self.quit = False
+        self.player = Player("./img/robot.png","./img/robojump.png",0,0)
+        self.far = Far("./img/far.png")
+        self.background = Background("./img/background.png")
+        self.landscape = Landscape("./data/background.json","./data/far.json")
 
     def update(self):
         return
     
     def draw(self):
         self.screen.fill(color_blue)
-        self.screen.blit(player.image,player.rect)
+        self.screen.blit(self.player.image,self.player.rect)
+        for y in range(len(self.landscape.background_grid)):
+            for x in range(len(self.landscape.background_grid[y])):
+                index = self.landscape.background_grid[y][x]
+                self.screen.blit(self.background.images[index], (x * 16,y * 16))
+        for y in range(len(self.landscape.far_grid)):
+            for x in range(len(self.landscape.far_grid[y])):
+                index = self.landscape.far_grid[y][x]
+                self.screen.blit(self.far.images[index], (x * 16,y * 16))
         tmpSurface = pygame.Surface((320,240))
         tmpSurface.blit(self.screen,(0,0))
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0))
@@ -154,22 +171,19 @@ class Game:
     
     def keyevent(self):
         keyin = pygame.key.get_pressed()
-        player.walking = False          
-        if keyin[K_RIGHT]:      
-            player.muki = 'RIGHT'
-            player.rect.move_ip(2,0)
-            player.walking = True
+        self.player.walking = False
+        if keyin[K_RIGHT]:
+            self.player.muki = 'RIGHT'
+            self.player.rect.move_ip(2,0)
+            self.player.walking = True
         if keyin[K_LEFT]:
-            player.muki = 'LEFT'
-            player.rect.move_ip(-2,0)
-            player.walking = True
-        if keyin[K_SPACE] and player.jumping < 1:
-            player.jumping = 1
+            self.player.muki = 'LEFT'
+            self.player.rect.move_ip(-2,0)
+            self.player.walking = True
+        if keyin[K_SPACE] and self.player.jumping < 1:
+            self.player.jumping = 1
             
     def mainLoop(self):
-        global player
-        player = Player("./img/robot.png","./img/robojump.png",0,0)
-        background = Background("./img/background.png")
         while not self.quit:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -177,7 +191,7 @@ class Game:
                 if (event.type == KEYDOWN and event.key == K_ESCAPE):
                     self.quit = True
             self.keyevent()
-            player.update()
+            self.player.update()
             self.update()
             self.draw()
             self.clock.tick(60)
