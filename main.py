@@ -106,21 +106,32 @@ class Player():
 
 class Background():
     def __init__(self,filename):
-        image = load_image(filename)
-        self.rect = self.image.get_rect(topleft=(x,y))
+        self.image = load_image(filename)
+        self.rect = self.image.get_rect()
         self.images = []
         
         for i in range(self.rect.w / 16):
             surface = pygame.Surface((16,16))
             surface.blit(self.image,(0,0),(16 * i,0,16,16))
             surface = surface.convert()
-            self.images.push(surface)
+            self.images.append(surface)
 
 class Far():
     def __init__(self,filename):
-        image = load_image(filename)
-        self.rect = self.image.get_rect(topleft=(x,y))
+        self.image = load_image(filename)
+        self.rect = self.image.get_rect()
         self.images = []
+        
+        for i in range(self.rect.w / 16):
+            surface = pygame.Surface((16,16))
+            surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            surface = surface.convert()
+            self.images.append(surface)
+
+class Landscape():
+    def __init__(self,far,background):
+        self.far = far
+        self.background = background
 
 class Game:
     def __init__(self):
@@ -155,9 +166,12 @@ class Game:
     def mainLoop(self):
         global player
         player = Player("./img/robot.png","./img/robojump.png",0,0)
+        background = Background("./img/background.png")
         while not self.quit:
             for event in pygame.event.get():
                 if event.type == QUIT:
+                    self.quit = True
+                if (event.type == KEYDOWN and event.key == K_ESCAPE):
                     self.quit = True
             self.keyevent()
             player.update()
