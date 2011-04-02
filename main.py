@@ -3,7 +3,7 @@ import pygame
 from pygame.locals import * 
 import sys
 
-SCR = (320,320)
+SCR = (640,480)
 color_black = 0,0,0
 color_blue = 0,0,255
 CAP = 'Pyweek'
@@ -76,7 +76,7 @@ class Player():
         self.walk.update({'left_jump':surface})
 
         self.image = self.walk['right_stop']
-        self.rect.move_ip(120,250)
+        self.rect.move_ip(120,120)
         
     def update(self):
         if self.jumping > 0 and self.jumping < 20:
@@ -118,6 +118,9 @@ class Game:
     def draw(self):
         self.screen.fill(color_blue)
         self.screen.blit(player.image,player.rect)
+        tmpSurface = pygame.Surface((320,240))
+        tmpSurface.blit(self.screen,(0,0))
+        self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0))
         pygame.display.flip()
     
     def keyevent(self):
