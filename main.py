@@ -224,8 +224,7 @@ class Singleton:
 class Task():
     def __init__(self):
         self.image = None
-        self.x = 0
-        self.y = 0
+        self.rect = Rect(0, 0, 0, 0)
         self.generator = None
         self.is_deleted = False
 
@@ -287,66 +286,72 @@ class Way():
     right, left = range(2)
 
 class PlayerBulletTask(BulletTask):
-    def __init__(self, x, y, way):
+    def __init__(self, left, top, way):
         Task.__init__(self)
         surface = pygame.Surface((8, 8))
         self.image = surface.convert()
-        self.x = x
-        self.y = y
+        self.rect.left = left
+        self.rect.top = top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
         self.way = way
 
     def act(self):
         while True:
             if self.way == Way.right:
-                self.x += 1
-                if self.x > 320:
+                self.rect.left += 1
+                if self.rect.left > 320:
                     yield False
             elif self.way == Way.left:
-                self.x -= 1
-                if self.x < 0 - 8:
+                self.rect.left -= 1
+                if self.rect.left < 0 - 8:
                     yield False
             yield True
 
 class SampleBossBulletTask(BulletTask):
-    def __init__(self, x, y, way):
+    def __init__(self, left, top, way):
         Task.__init__(self)
         surface = pygame.Surface((2, 2))
         self.image = surface.convert()
-        self.x = x
-        self.y = y
+        self.rect.left = left
+        self.rect.top = top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
         self.way = way
 
     def act(self):
         while True:
             if self.way == Way.right:
-                self.x += 2
-                if self.x > 320:
+                self.rect.left += 2
+                if self.rect.left > 320:
                     yield False
             elif self.way == Way.left:
-                self.x -= 2
-                if self.x < 0 - 2:
+                self.rect.left -= 2
+                if self.rect.left < 0 - 2:
                     yield False
             yield True
 
 class SampleBossTask(EnemyTask):
-    def __init__(self, x, y):
+    def __init__(self, left, top):
         Task.__init__(self)
         surface = pygame.Surface((16, 32))
         self.image = surface.convert()
-        self.x = x
-        self.y = y
+        self.rect.left = left
+        self.rect.top = top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
 
     def act(self):
         while True:
             for i in range(30):
-                self.x += 1
+                self.rect.left += 1
                 if random.randrange(40) == 0:
-                    Tracker.instance().add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 yield True
             for i in range(30):
-                self.x -= 1
+                self.rect.left -= 1
                 if random.randrange(25) == 0:
-                    Tracker.instance().add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 yield True
 
 class Game:
@@ -378,7 +383,7 @@ class Game:
                 index = self.landscape.wall_grid[y][x]
                 self.screen.blit(self.wall.images[index], (x * 16, y * 16))
         for task in Tracker.instance().get_all_tasks():
-            self.screen.blit(task.image, (task.x, task.y))
+            self.screen.blit(task.image, (task.rect.left, task.rect.top))
         self.screen.blit(self.player.image, self.player.rect)
 
         self.counter.update()
@@ -405,7 +410,7 @@ class Game:
             self.player.jumping = 1
         if keyin[K_x]:
             way = Way.right if self.player.muki == 'RIGHT' else Way.left
-            Tracker.instance().add_task(PlayerBulletTask(self.player.rect.x, self.player.rect.y, way))
+            Tracker.instance().add_task(PlayerBulletTask(self.player.rect.left, self.player.rect.top, way))
         if not keyin[K_UP]:
             self.player.jumping = 0
 
