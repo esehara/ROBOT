@@ -202,6 +202,25 @@ class Count():
             self.rect.left = 10 + i * 16
             i += 1   
 
+class Singleton:
+    __instances = {}
+    __creations = set()
+
+    def __init__(self):
+        if self.__class__ not in self.__creations:
+            raise RuntimeError("must call instance()")
+
+    @classmethod
+    def instance(cls):
+        instance = Singleton.__instances.get(cls, None)
+        if instance is None:
+            Singleton.__creations.add(cls)
+            try:
+                Singleton.__instances[cls] = instance = cls()
+            finally:
+                Singleton.__creations.remove(cls)
+        return instance
+
 class Task():
     def __init__(self):
         self.image = None
@@ -224,8 +243,9 @@ class PlayerTask(Task):
 class TaskNotImplementedError():
     pass
 
-class Tracker():
+class Tracker(Singleton):
     def __init__(self):
+        Singleton.__init__(self)
         self.bullet_tasks = []
         self.enemy_tasks = []
         self.player_tasks = []
@@ -290,24 +310,23 @@ class SampleBossBulletTask(BulletTask):
             yield
 
 class SampleBossTask(EnemyTask):
-    def __init__(self, x, y, tracker):
+    def __init__(self, x, y):
         surface = pygame.Surface((16, 32))
         self.image = surface.convert()
         self.x = x
         self.y = y
-        self.tracker = tracker
 
     def act(self):
         while True:
             for i in range(30):
                 self.x += 1
                 if random.randrange(40) == 0:
-                    self.tracker.add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
+                    Tracker.instance().add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
                 yield
             for i in range(30):
                 self.x -= 1
                 if random.randrange(25) == 0:
-                    self.tracker.add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
+                    Tracker.instance().add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
                 yield
 
 class Game:
@@ -322,14 +341,13 @@ class Game:
         self.background = Background("./img/background.png")
         self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
-        self.tracker = Tracker()
-        self.tracker.add_task(SampleBossTask(200, 160, self.tracker))
+        Tracker.instance().add_task(SampleBossTask(200, 160))
 
     def update(self):
         return 
 
     def draw(self):
-        self.tracker.act_all_tasks()
+        Tracker.instance().act_all_tasks()
         self.screen.fill(color_blue)
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
@@ -339,7 +357,7 @@ class Game:
             for x in range(len(self.landscape.wall_grid[y])):
                 index = self.landscape.wall_grid[y][x]
                 self.screen.blit(self.wall.images[index], (x * 16, y * 16))
-        for task in self.tracker.get_all_tasks():
+        for task in Tracker.instance().get_all_tasks():
             self.screen.blit(task.image, (task.x, task.y))
         self.screen.blit(self.player.image, self.player.rect)
 
@@ -367,7 +385,7 @@ class Game:
             self.player.jumping = 1
         if keyin[K_x]:
             way = Way.right if self.player.muki == 'RIGHT' else Way.left
-            self.tracker.add_task(PlayerBulletTask(self.player.rect.x, self.player.rect.y, way))
+            Tracker.instance().add_task(PlayerBulletTask(self.player.rect.x, self.player.rect.y, way))
         if not keyin[K_UP]:
             self.player.jumping = 0
 
