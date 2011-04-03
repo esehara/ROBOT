@@ -3,6 +3,7 @@
 import pygame
 from pygame.locals import * 
 import json
+import random
 import sys
 
 SCR = (640, 480)
@@ -40,42 +41,42 @@ class Player():
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0], (0, 0), (0, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface.convert()
+        surface = surface.convert()
         self.walk.update({'right_stop':surface})
         
         ##Right_Walk
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0], (0, 0), (16, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface.convert()
+        surface = surface.convert()
         self.walk.update({'right_move':surface})
         
         ##Left_Stop
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0],(0, 0),(0, 16, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface.convert()
+        surface = surface.convert()
         self.walk.update({'left_stop':surface})
         
         ##Right_Walk
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0], (0, 0), (16, 16, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface.convert()
+        surface = surface.convert()
         self.walk.update({'left_move':surface})
         
         ##RightJump
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[1],(0, 0), (0, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface.convert()
+        surface = surface.convert()
         self.walk.update({'right_jump':surface})
         
         ##leftJump
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[1], (0, 0), (16, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface.convert()
+        surface = surface.convert()
         self.walk.update({'left_jump':surface})
 
         self.image = self.walk['right_stop']
@@ -201,6 +202,114 @@ class Count():
             self.rect.left = 10 + i * 16
             i += 1   
 
+class Task():
+    def __init__(self):
+        self.image = None
+        self.x = 0
+        self.y = 0
+        self.generator = None
+
+    def act(self):
+        raise NotImplementedError
+
+class BulletTask(Task):
+    pass
+
+class EnemyTask(Task):
+    pass
+
+class PlayerTask(Task):
+    pass
+
+class TaskNotImplementedError():
+    pass
+
+class Tracker():
+    def __init__(self):
+        self.bullet_tasks = []
+        self.enemy_tasks = []
+        self.player_tasks = []
+        self.tasks_containers = [
+            self.bullet_tasks,
+            self.enemy_tasks,
+            self.player_tasks]
+
+    def add_task(self, task):
+        if isinstance(task, BulletTask):
+            self.bullet_tasks.append(task)
+        elif isinstance(task, EnemyTask):
+            self.enemy_tasks.append(task)
+        elif isinstance(task, PlayerTask):
+            self.player_tasks.append(task)
+        else:
+            raise TaskNotImplementedError
+        task.generator = task.act()
+
+    def act_all_tasks(self):
+        for task in self.get_all_tasks():
+            task.generator.next()
+
+    def get_all_tasks(self):
+        for tasks in self.tasks_containers:
+            for task in tasks:
+                yield task
+
+class Way():
+    right, left = range(2)
+
+class PlayerBulletTask(BulletTask):
+    def __init__(self, x, y, way):
+        surface = pygame.Surface((8, 8))
+        self.image = surface.convert()
+        self.x = x
+        self.y = y
+        self.way = way
+
+    def act(self):
+        while True:
+            if self.way == Way.right:
+                self.x += 1
+            elif self.way == Way.left:
+                self.x -= 1
+            yield
+
+class SampleBossBulletTask(BulletTask):
+    def __init__(self, x, y, way):
+        surface = pygame.Surface((2, 2))
+        self.image = surface.convert()
+        self.x = x
+        self.y = y
+        self.way = way
+
+    def act(self):
+        while True:
+            if self.way == Way.right:
+                self.x += 2
+            elif self.way == Way.left:
+                self.x -= 2
+            yield
+
+class SampleBossTask(EnemyTask):
+    def __init__(self, x, y, tracker):
+        surface = pygame.Surface((16, 32))
+        self.image = surface.convert()
+        self.x = x
+        self.y = y
+        self.tracker = tracker
+
+    def act(self):
+        while True:
+            for i in range(30):
+                self.x += 1
+                if random.randrange(40) == 0:
+                    self.tracker.add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
+                yield
+            for i in range(30):
+                self.x -= 1
+                if random.randrange(25) == 0:
+                    self.tracker.add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
+                yield
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -213,11 +322,14 @@ class Game:
         self.background = Background("./img/background.png")
         self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
+        self.tracker = Tracker()
+        self.tracker.add_task(SampleBossTask(200, 160, self.tracker))
 
     def update(self):
         return 
 
     def draw(self):
+        self.tracker.act_all_tasks()
         self.screen.fill(color_blue)
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
@@ -227,6 +339,8 @@ class Game:
             for x in range(len(self.landscape.wall_grid[y])):
                 index = self.landscape.wall_grid[y][x]
                 self.screen.blit(self.wall.images[index], (x * 16, y * 16))
+        for task in self.tracker.get_all_tasks():
+            self.screen.blit(task.image, (task.x, task.y))
         self.screen.blit(self.player.image, self.player.rect)
 
         self.counter.update()
@@ -249,8 +363,11 @@ class Game:
             self.player.muki = 'LEFT'
             self.player.walking = True
             self.player.clash_wall(-2, 0)
-        if (keyin[K_UP] and self.player.jumping == 0 and not self.player.grab()):
+        if ((keyin[K_UP] | keyin[K_z]) and self.player.jumping == 0 and not self.player.grab()):
             self.player.jumping = 1
+        if keyin[K_x]:
+            way = Way.right if self.player.muki == 'RIGHT' else Way.left
+            self.tracker.add_task(PlayerBulletTask(self.player.rect.x, self.player.rect.y, way))
         if not keyin[K_UP]:
             self.player.jumping = 0
 
