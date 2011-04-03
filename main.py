@@ -344,10 +344,10 @@ class Game:
         Tracker.instance().add_task(SampleBossTask(200, 160))
 
     def update(self):
+        Tracker.instance().act_all_tasks()
         return 
 
     def draw(self):
-        Tracker.instance().act_all_tasks()
         self.screen.fill(color_blue)
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
