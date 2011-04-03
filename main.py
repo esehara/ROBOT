@@ -5,93 +5,93 @@ from pygame.locals import *
 import json
 import sys
 
-SCR = (640,480)
-color_black = 0,0,0
-color_blue = 0,0,255
+SCR = (640, 480)
+color_black = 0, 0, 0
+color_blue = 0, 0, 255
 CAP = 'Pyweek'
 
-def load_image(filename,colorkey=None):
+def load_image(filename, colorkey=None):
     try:
         image = pygame.image.load(filename).convert()
-    except pygame.error,message:
-        print "Cannot load image:",filename
-        raise SystemExit,message
+    except pygame.error, message:
+        print "Cannot load image:", filename
+        raise SystemExit, message
     if colorkey is not None:
         if colorkey is -1:
-            colorkey = image.get_at((0,0))
-        image.set_colorkey(colorkey,RLEACCEL)
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey, RLEACCEL)
     return image
 
 class Player():
-    def __init__(self,filename,filename2,x,y):
+    def __init__(self, filename, filename2, x, y):
         self.jumping = 0
         self.images = []
         self.images.append(load_image(filename))
         self.images.append(load_image(filename2))
-        self.rect = self.images[0].get_rect(topleft=(x,y))
+        self.rect = self.images[0].get_rect(topleft=(x, y))
         self.walk = {}
         self.muki = 'RIGHT'
         self.walking = False
         self.walkrate = 0
         self.grab_flag = True
-        surface = pygame.Surface((16,16))
+        surface = pygame.Surface((16, 16))
         
         ##Right_Stop
-        surface = pygame.Surface((16,16))
-        surface.blit(self.images[0],(0,0),(0,0,16,16))
-        surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
+        surface = pygame.Surface((16, 16))
+        surface.blit(self.images[0], (0, 0), (0, 0, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'right_stop':surface})
         
         ##Right_Walk
-        surface = pygame.Surface((16,16))
-        surface.blit(self.images[0],(0,0),(16,0,16,16))
-        surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
+        surface = pygame.Surface((16, 16))
+        surface.blit(self.images[0], (0, 0), (16, 0, 16, 16))
+        surface.set_colorkey(surface.get_at(( 0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'right_move':surface})
         
         ##Left_Stop
-        surface = pygame.Surface((16,16))
-        surface.blit(self.images[0],(0,0),(0,16,16,16))
-        surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
+        surface = pygame.Surface((16, 16))
+        surface.blit(self.images[0],( 0, 0),( 0, 16, 16, 16))
+        surface.set_colorkey(surface.get_at(( 0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'left_stop':surface})
         
         ##Right_Walk
-        surface = pygame.Surface((16,16))
-        surface.blit(self.images[0],(0,0),(16,16,16,16))
-        surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
+        surface = pygame.Surface((16, 16))
+        surface.blit(self.images[0], (0, 0), (16, 16, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'left_move':surface})
         
         ##RightJump
-        surface = pygame.Surface((16,16))
-        surface.blit(self.images[1],(0,0),(0,0,16,16))
-        surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
+        surface = pygame.Surface((16, 16))
+        surface.blit(self.images[1],(0, 0), (0, 0, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'right_jump':surface})
         
         ##leftJump
-        surface = pygame.Surface((16,16))
-        surface.blit(self.images[1],(0,0),(16,0,16,16))
-        surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
+        surface = pygame.Surface((16, 16))
+        surface.blit(self.images[1], (0, 0), (16, 0, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'left_jump':surface})
 
         self.image = self.walk['right_stop']
-        self.rect.move_ip(120,120)
+        self.rect.move_ip(120, 120)
         
     def update(self):
         if self.jumping > 0 and self.jumping < 39:
             self.jumping += 1
-            self.clash_wall(0,-2)
+            self.clash_wall(0, -2)
         elif self.jumping > 38:
             self.jumping = 0
 
         self.grab_flag = self.grab()
 
         if self.grab_flag:
-            self.rect.move_ip(0,2)
+            self.rect.move_ip(0, 2)
             
         self.walkrate += 1
 
@@ -109,7 +109,7 @@ class Player():
             self.walkrate = 0
 
 
-    def clash_wall(self,x,y):
+    def clash_wall(self, x, y):
         # Clash Left or not ?
 
         mas_top = (self.rect.top + y) / 16
@@ -118,15 +118,15 @@ class Player():
         mas_right = ((self.rect.right + x) / 16) -2
 
         if x < 0:
-            if not ((game.landscape.far_grid[mas_top][mas_left] > 0) or (game.landscape.far_grid[mas_bottom][mas_left] > 0)):
-                self.rect.move_ip(x,y) 
+            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_left] > 0)):
+                self.rect.move_ip(x, y) 
         if x > 0:
-            if not ((game.landscape.far_grid[mas_top][mas_right] > 0) or (game.landscape.far_grid[mas_bottom][mas_right] > 0)):
-                self.rect.move_ip(x,y)
+            if not ((game.landscape.wall_grid[mas_top][mas_right] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
+                self.rect.move_ip(x, y)
         if y < 0:
-            if not ((game.landscape.far_grid[mas_top][mas_left] > 0) or (game.landscape.far_grid[mas_top][mas_right] > 0)):
-                self.rect.move_ip(x,y)
-            elif ((game.landscape.far_grid[mas_top][mas_left] > 0) or (game.landscape.far_grid[mas_top][mas_right] > 0)):
+            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
+                self.rect.move_ip(x, y)
+            elif ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
                 self.jumping = 0            
  
 
@@ -138,24 +138,24 @@ class Player():
 
         if self.jumping > 0 and self.jumping < 39:
             return False
-        if not ((game.landscape.far_grid[mas_bottom][mas_left] > 0) or (game.landscape.far_grid[mas_bottom][mas_right] > 0)):
+        if not ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
             return True        
-        elif ((game.landscape.far_grid[mas_bottom][mas_left] > 0) or (game.landscape.far_grid[mas_bottom][mas_right] > 0)):
+        elif ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
             return False
 
 class Background():
-    def __init__(self,filename):
+    def __init__(self, filename):
         self.image = load_image(filename)
         self.rect = self.image.get_rect()
         self.images = []
         
         for i in range(self.rect.w / 16):
             surface = pygame.Surface((16,16))
-            surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            surface.blit(self.image, (0,0), (16 * i,0,16,16))
             surface = surface.convert()
             self.images.append(surface)
 
-class Far():
+class Wall():
     def __init__(self,filename):
         self.image = load_image(filename,-1)
         self.rect = self.image.get_rect()
@@ -170,13 +170,29 @@ class Far():
             self.images.append(surface)
 
 class Landscape():
-    def __init__(self,background_filename,far_filename):
+    def __init__(self,background_filename, wall_filename):
         f = open(background_filename)
         self.background_grid = json.load(f)
         f.close()
-        f = open(far_filename)
-        self.far_grid = json.load(f)
+        f = open(wall_filename)
+        self.wall_grid = json.load(f)
         f.close()
+
+class Count():
+    def __init__(self):
+        self.image = load_image("./img/counter.png",-1)
+        self.rect = self.image.get_rect()
+        self.images = []       
+        for i in range(self.rect.w / 16):
+            surface = pygame.Surface((16,16))
+            surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            surface = surface.convert()
+            self.images.append(surface)
+        self.counter = 0
+
+    def update(self):
+        self.counter += 1
+        
 
 class Game:
     def __init__(self):
@@ -186,24 +202,29 @@ class Game:
         self.clock = pygame.time.Clock()
         self.quit = False
         self.player = Player("./img/robot.png","./img/robojump.png",0,0)
-        self.far = Far("./img/far.png")
+        self.wall = Wall("./img/wall.png")
         self.background = Background("./img/background.png")
-        self.landscape = Landscape("./data/background.json","./data/far.json")
+        self.landscape = Landscape("./data/background.json","./data/wall.json")
+        self.counter = Count()
 
     def update(self):
-        return
-    
+        return 
+
     def draw(self):
         self.screen.fill(color_blue)
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
                 index = self.landscape.background_grid[y][x]
                 self.screen.blit(self.background.images[index], (x * 16,y * 16))
-        for y in range(len(self.landscape.far_grid)):
-            for x in range(len(self.landscape.far_grid[y])):
-                index = self.landscape.far_grid[y][x]
-                self.screen.blit(self.far.images[index], (x * 16,y * 16))
+        for y in range(len(self.landscape.wall_grid)):
+            for x in range(len(self.landscape.wall_grid[y])):
+                index = self.landscape.wall_grid[y][x]
+                self.screen.blit(self.wall.images[index], (x * 16,y * 16))
         self.screen.blit(self.player.image,self.player.rect)
+
+        self.counter.update()
+
+        ## 320,240 ==> 640,480
         tmpSurface = pygame.Surface((320,240))
         tmpSurface.blit(self.screen,(0,0))
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0)) 
@@ -244,18 +265,22 @@ class Game:
         typed_start = False
         while not typed_start:
             self.screen.fill(color_blue)
-            self.screen.blit(titleimage,(60,50))
-            tmpSurface = pygame.Surface((320,240))
-            tmpSurface.blit(self.screen,(0,0))
+            self.screen.blit(titleimage, (60, 50))
+            tmpSurface = pygame.Surface((320, 240))
+            tmpSurface.blit(self.screen, (0, 0))
             self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0)) 
             pygame.display.flip()
             for event in pygame.event.get():
                 if (event.type == KEYDOWN and event.key == K_SPACE):
                     typed_start = True
+                if event.type == QUIT:
+                    self.quit = True
+                if (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    self.quit = True
             self.clock.tick(60)
         return
 
 if __name__ == '__main__':
     game = Game()
-    #game.titleLoop()
+    game.titleLoop()
     game.mainLoop()
