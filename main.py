@@ -227,6 +227,7 @@ class Task():
         self.x = 0
         self.y = 0
         self.generator = None
+        self.is_deleted = False
 
     def act(self):
         raise NotImplementedError
@@ -267,11 +268,19 @@ class Tracker(Singleton):
 
     def act_all_tasks(self):
         for task in self.get_all_tasks():
-            task.generator.next()
+            ret = task.generator.next()
+            if ret == False:
+                task.is_deleted = True
+
+    def delete_tasks(self):
+        for task_container in self.tasks_containers:
+            for task in task_container:
+                if task.is_deleted == True:
+                    task_container.remove(task)
 
     def get_all_tasks(self):
-        for tasks in self.tasks_containers:
-            for task in tasks:
+        for task_container in self.tasks_containers:
+            for task in task_container:
                 yield task
 
 class Way():
@@ -279,6 +288,7 @@ class Way():
 
 class PlayerBulletTask(BulletTask):
     def __init__(self, x, y, way):
+        Task.__init__(self)
         surface = pygame.Surface((8, 8))
         self.image = surface.convert()
         self.x = x
@@ -289,12 +299,17 @@ class PlayerBulletTask(BulletTask):
         while True:
             if self.way == Way.right:
                 self.x += 1
+                if self.x > 320:
+                    yield False
             elif self.way == Way.left:
                 self.x -= 1
-            yield
+                if self.x < 0 - 8:
+                    yield False
+            yield True
 
 class SampleBossBulletTask(BulletTask):
     def __init__(self, x, y, way):
+        Task.__init__(self)
         surface = pygame.Surface((2, 2))
         self.image = surface.convert()
         self.x = x
@@ -305,12 +320,17 @@ class SampleBossBulletTask(BulletTask):
         while True:
             if self.way == Way.right:
                 self.x += 2
+                if self.x > 320:
+                    yield False
             elif self.way == Way.left:
                 self.x -= 2
-            yield
+                if self.x < 0 - 2:
+                    yield False
+            yield True
 
 class SampleBossTask(EnemyTask):
     def __init__(self, x, y):
+        Task.__init__(self)
         surface = pygame.Surface((16, 32))
         self.image = surface.convert()
         self.x = x
@@ -322,12 +342,12 @@ class SampleBossTask(EnemyTask):
                 self.x += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
-                yield
+                yield True
             for i in range(30):
                 self.x -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.x, self.y + random.randrange(32), Way.left))
-                yield
+                yield True
 
 class Game:
     def __init__(self):
@@ -400,6 +420,7 @@ class Game:
             self.player.update()
             self.update()
             self.draw()
+            Tracker.instance().delete_tasks()
             self.clock.tick(60)
 
     def titleLoop(self):
