@@ -298,14 +298,22 @@ class PlayerBulletTask(BulletTask):
     def act(self):
         while True:
             if self.way == Way.right:
-                self.x += 1
-                if self.x > 320:
+                self.x += 8
+                #Wall Clash is ....
+                if self.wall_clash():
+                    game.playerballet = False
                     yield False
             elif self.way == Way.left:
-                self.x -= 1
-                if self.x < 0 - 8:
+                self.x -= 8
+                if self.wall_clash():
+                    game.playerballet = False
                     yield False
             yield True
+
+    def wall_clash(self):
+        mas_x = self.x / 16
+        mas_y = self.y / 16
+        return (game.landscape.wall_grid[mas_y][mas_x] > 0 or game.landscape.wall_grid[mas_y + 1][mas_x] > 0)
 
 class SampleBossBulletTask(BulletTask):
     def __init__(self, x, y, way):
@@ -361,6 +369,7 @@ class Game:
         self.background = Background("./img/background.png")
         self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
+        self.playerballet = False
         Tracker.instance().add_task(SampleBossTask(200, 160))
 
     def update(self):
@@ -405,7 +414,9 @@ class Game:
             self.player.jumping = 1
         if keyin[K_x]:
             way = Way.right if self.player.muki == 'RIGHT' else Way.left
-            Tracker.instance().add_task(PlayerBulletTask(self.player.rect.x, self.player.rect.y, way))
+            if not self.playerballet:
+                self.playerballet = True
+                Tracker.instance().add_task(PlayerBulletTask(self.player.rect.x, self.player.rect.y, way))
         if not keyin[K_UP]:
             self.player.jumping = 0
 
@@ -445,5 +456,5 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.titleLoop()
+    #game.titleLoop()
     game.mainLoop()
