@@ -46,14 +46,14 @@ class Player():
         ##Right_Walk
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0], (0, 0), (16, 0, 16, 16))
-        surface.set_colorkey(surface.get_at(( 0, 0)), RLEACCEL)
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'right_move':surface})
         
         ##Left_Stop
         surface = pygame.Surface((16, 16))
-        surface.blit(self.images[0],( 0, 0),( 0, 16, 16, 16))
-        surface.set_colorkey(surface.get_at(( 0, 0)), RLEACCEL)
+        surface.blit(self.images[0],(0, 0),(0, 16, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface.convert()
         self.walk.update({'left_stop':surface})
         
@@ -150,27 +150,27 @@ class Background():
         self.images = []
         
         for i in range(self.rect.w / 16):
-            surface = pygame.Surface((16,16))
-            surface.blit(self.image, (0,0), (16 * i,0,16,16))
+            surface = pygame.Surface((16, 16))
+            surface.blit(self.image, (0, 0), (16 * i, 0, 16, 16))
             surface = surface.convert()
             self.images.append(surface)
 
 class Wall():
-    def __init__(self,filename):
-        self.image = load_image(filename,-1)
+    def __init__(self, filename):
+        self.image = load_image(filename, -1)
         self.rect = self.image.get_rect()
         self.images = []
         
         for i in range(self.rect.w / 16):
-            surface = pygame.Surface((16,16))
-            surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            surface = pygame.Surface((16, 16))
+            surface.blit(self.image, (0, 0), (16 * i, 0, 16, 16))
             if i == 0:
-                surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
+                surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
             surface = surface.convert()
             self.images.append(surface)
 
 class Landscape():
-    def __init__(self,background_filename, wall_filename):
+    def __init__(self, background_filename, wall_filename):
         f = open(background_filename)
         self.background_grid = json.load(f)
         f.close()
@@ -180,12 +180,12 @@ class Landscape():
 
 class Count():
     def __init__(self):
-        self.image = load_image("./img/counter.png",-1)
+        self.image = load_image("./img/counter.png", -1)
         self.rect = self.image.get_rect()
         self.images = []       
         for i in range(self.rect.w / 16):
-            surface = pygame.Surface((16,16))
-            surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            surface = pygame.Surface((16, 16))
+            surface.blit(self.image, (0, 0), (16 * i, 0, 16, 16))
             surface = surface.convert()
             self.images.append(surface)
         self.counter = 0
@@ -201,10 +201,10 @@ class Game:
         pygame.display.set_caption(CAP)
         self.clock = pygame.time.Clock()
         self.quit = False
-        self.player = Player("./img/robot.png","./img/robojump.png",0,0)
+        self.player = Player("./img/robot.png", "./img/robojump.png", 0, 0)
         self.wall = Wall("./img/wall.png")
         self.background = Background("./img/background.png")
-        self.landscape = Landscape("./data/background.json","./data/wall.json")
+        self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
 
     def update(self):
@@ -215,19 +215,19 @@ class Game:
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
                 index = self.landscape.background_grid[y][x]
-                self.screen.blit(self.background.images[index], (x * 16,y * 16))
+                self.screen.blit(self.background.images[index], (x * 16, y * 16))
         for y in range(len(self.landscape.wall_grid)):
             for x in range(len(self.landscape.wall_grid[y])):
                 index = self.landscape.wall_grid[y][x]
-                self.screen.blit(self.wall.images[index], (x * 16,y * 16))
-        self.screen.blit(self.player.image,self.player.rect)
+                self.screen.blit(self.wall.images[index], (x * 16, y * 16))
+        self.screen.blit(self.player.image, self.player.rect)
 
         self.counter.update()
 
-        ## 320,240 ==> 640,480
-        tmpSurface = pygame.Surface((320,240))
-        tmpSurface.blit(self.screen,(0,0))
-        self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0)) 
+        ## 320, 240 ==> 640, 480
+        tmpSurface = pygame.Surface((320, 240))
+        tmpSurface.blit(self.screen, (0, 0))
+        self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
         pygame.display.flip()
 
     def keyevent(self):
@@ -237,11 +237,11 @@ class Game:
         if keyin[K_RIGHT]:
             self.player.muki = 'RIGHT'
             self.player.walking = True
-            self.player.clash_wall(2,0)
+            self.player.clash_wall(2, 0)
         if keyin[K_LEFT]:
             self.player.muki = 'LEFT'
             self.player.walking = True
-            self.player.clash_wall(-2,0)
+            self.player.clash_wall(-2, 0)
         if (keyin[K_UP] and self.player.jumping == 0 and not self.player.grab()):
             self.player.jumping = 1
         if not keyin[K_UP]:
@@ -261,14 +261,14 @@ class Game:
             self.clock.tick(60)
 
     def titleLoop(self):
-        titleimage = load_image('./img/title.png',-1)
+        titleimage = load_image('./img/title.png', -1)
         typed_start = False
         while not typed_start:
             self.screen.fill(color_blue)
             self.screen.blit(titleimage, (60, 50))
             tmpSurface = pygame.Surface((320, 240))
             tmpSurface.blit(self.screen, (0, 0))
-            self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0)) 
+            self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
             pygame.display.flip()
             for event in pygame.event.get():
                 if (event.type == KEYDOWN and event.key == K_SPACE):
