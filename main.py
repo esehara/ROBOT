@@ -186,13 +186,20 @@ class Count():
         for i in range(self.rect.w / 16):
             surface = pygame.Surface((16, 16))
             surface.blit(self.image, (0, 0), (16 * i, 0, 16, 16))
+            surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
             surface = surface.convert()
             self.images.append(surface)
         self.counter = 0
+        self.rect.move_ip(10,10)
 
     def update(self):
         self.counter += 1
-        
+        draw_count = str(self.counter)
+        i = 0
+        for keta in draw_count:
+            game.screen.blit(self.images[int(keta)], (10 + i * 16, 10))
+            self.rect.left = 10 + i * 16
+            i += 1   
 
 class Game:
     def __init__(self):
