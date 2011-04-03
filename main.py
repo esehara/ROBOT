@@ -80,13 +80,13 @@ class Player():
         self.rect.move_ip(120,120)
         
     def update(self):
-        if self.jumping > 0 and self.jumping < 20:
+        if self.jumping > 0 and self.jumping < 39:
            self.jumping += 1
            self.rect.move_ip(0,-2)
-        elif self.jumping > 19 and self.jumping < 39:
+        elif self.jumping > 38 and self.jumping < 77:
             self.jumping += 1
             self.rect.move_ip(0,2)
-        elif self.jumping > 38:
+        elif self.jumping > 76:
             self.jumping = 0
             
         self.walkrate += 1
@@ -155,7 +155,6 @@ class Game:
     
     def draw(self):
         self.screen.fill(color_blue)
-        self.screen.blit(self.player.image,self.player.rect)
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
                 index = self.landscape.background_grid[y][x]
@@ -164,6 +163,7 @@ class Game:
             for x in range(len(self.landscape.far_grid[y])):
                 index = self.landscape.far_grid[y][x]
                 self.screen.blit(self.far.images[index], (x * 16,y * 16))
+        self.screen.blit(self.player.image,self.player.rect)
         tmpSurface = pygame.Surface((320,240))
         tmpSurface.blit(self.screen,(0,0))
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0))
@@ -180,7 +180,7 @@ class Game:
             self.player.muki = 'LEFT'
             self.player.rect.move_ip(-2,0)
             self.player.walking = True
-        if keyin[K_SPACE] and self.player.jumping < 1:
+        if keyin[K_UP] and self.player.jumping < 1:
             self.player.jumping = 1
             
     def mainLoop(self):
