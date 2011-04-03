@@ -1,4 +1,5 @@
 # -*- encording : UTF-8 -*-
+
 import pygame
 from pygame.locals import * 
 import json
@@ -32,6 +33,7 @@ class Player():
         self.muki = 'RIGHT'
         self.walking = False
         self.walkrate = 0
+        self.grab_flag = True
         surface = pygame.Surface((16,16))
         
         ##Right_Stop
@@ -81,13 +83,15 @@ class Player():
         
     def update(self):
         if self.jumping > 0 and self.jumping < 39:
-           self.jumping += 1
-           self.rect.move_ip(0,-2)
-        elif self.jumping > 38 and self.jumping < 77:
             self.jumping += 1
-            self.rect.move_ip(0,2)
-        elif self.jumping > 76:
+            self.clash_wall(0,-2)
+        elif self.jumping > 38:
             self.jumping = 0
+
+        self.grab_flag = self.grab()
+
+        if self.grab_flag:
+            self.rect.move_ip(0,2)
             
         self.walkrate += 1
 
@@ -105,6 +109,40 @@ class Player():
             self.walkrate = 0
 
 
+    def clash_wall(self,x,y):
+        # Clash Left or not ?
+
+        mas_top = (self.rect.top + y) / 16
+        mas_left = (self.rect.left + x)/ 16
+        mas_bottom = ((self.rect.bottom + y) / 16 -1)
+        mas_right = ((self.rect.right + x) / 16) -2
+
+        if x < 0:
+            if not ((game.landscape.far_grid[mas_top][mas_left] > 0) or (game.landscape.far_grid[mas_bottom][mas_left] > 0)):
+                self.rect.move_ip(x,y) 
+        if x > 0:
+            if not ((game.landscape.far_grid[mas_top][mas_right] > 0) or (game.landscape.far_grid[mas_bottom][mas_right] > 0)):
+                self.rect.move_ip(x,y)
+        if y < 0:
+            if not ((game.landscape.far_grid[mas_top][mas_left] > 0) or (game.landscape.far_grid[mas_top][mas_right] > 0)):
+                self.rect.move_ip(x,y)
+            elif ((game.landscape.far_grid[mas_top][mas_left] > 0) or (game.landscape.far_grid[mas_top][mas_right] > 0)):
+                self.jumping = 0            
+ 
+
+    def grab(self):
+
+        mas_left = self.rect.left / 16
+        mas_bottom = (self.rect.top + 18) / 16
+        mas_right = ((self.rect.right ) / 16) -2
+
+        if self.jumping > 0 and self.jumping < 39:
+            return False
+        if not ((game.landscape.far_grid[mas_bottom][mas_left] > 0) or (game.landscape.far_grid[mas_bottom][mas_right] > 0)):
+            return True        
+        elif ((game.landscape.far_grid[mas_bottom][mas_left] > 0) or (game.landscape.far_grid[mas_bottom][mas_right] > 0)):
+            return False
+
 class Background():
     def __init__(self,filename):
         self.image = load_image(filename)
@@ -119,13 +157,15 @@ class Background():
 
 class Far():
     def __init__(self,filename):
-        self.image = load_image(filename)
+        self.image = load_image(filename,-1)
         self.rect = self.image.get_rect()
         self.images = []
         
         for i in range(self.rect.w / 16):
             surface = pygame.Surface((16,16))
             surface.blit(self.image,(0,0),(16 * i,0,16,16))
+            if i == 0:
+                surface.set_colorkey(surface.get_at((0,0)),RLEACCEL)
             surface = surface.convert()
             self.images.append(surface)
 
@@ -166,23 +206,26 @@ class Game:
         self.screen.blit(self.player.image,self.player.rect)
         tmpSurface = pygame.Surface((320,240))
         tmpSurface.blit(self.screen,(0,0))
-        self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0))
+        self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0)) 
         pygame.display.flip()
-    
+
     def keyevent(self):
+        
         keyin = pygame.key.get_pressed()
         self.player.walking = False
         if keyin[K_RIGHT]:
             self.player.muki = 'RIGHT'
-            self.player.rect.move_ip(2,0)
             self.player.walking = True
+            self.player.clash_wall(2,0)
         if keyin[K_LEFT]:
             self.player.muki = 'LEFT'
-            self.player.rect.move_ip(-2,0)
             self.player.walking = True
-        if keyin[K_UP] and self.player.jumping < 1:
+            self.player.clash_wall(-2,0)
+        if (keyin[K_UP] and self.player.jumping == 0 and not self.player.grab()):
             self.player.jumping = 1
-            
+        if not keyin[K_UP]:
+            self.player.jumping = 0
+
     def mainLoop(self):
         while not self.quit:
             for event in pygame.event.get():
@@ -196,6 +239,23 @@ class Game:
             self.draw()
             self.clock.tick(60)
 
+    def titleLoop(self):
+        titleimage = load_image('./img/title.png',-1)
+        typed_start = False
+        while not typed_start:
+            self.screen.fill(color_blue)
+            self.screen.blit(titleimage,(60,50))
+            tmpSurface = pygame.Surface((320,240))
+            tmpSurface.blit(self.screen,(0,0))
+            self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)),(0, 0)) 
+            pygame.display.flip()
+            for event in pygame.event.get():
+                if (event.type == KEYDOWN and event.key == K_SPACE):
+                    typed_start = True
+            self.clock.tick(60)
+        return
+
 if __name__ == '__main__':
     game = Game()
+    #game.titleLoop()
     game.mainLoop()
