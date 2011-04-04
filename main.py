@@ -419,15 +419,19 @@ class Game:
         tamakazu.top = self.player.rect.top - 13
         tamakazu.width = self.player.inochi
         tamakazu.height = 6
-        if slef.player.purse_flag:
-            self.convet_to_gs()
+
         if self.player.inochi > 0:
             pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
+
         self.counter.update()
 
         ## 320, 240 ==> 640, 480
         tmpSurface = pygame.Surface((320, 240))
         tmpSurface.blit(self.screen, (0, 0))
+
+        if self.purse_flag:
+            tmpSurface = self.convert_to_gs(tmpSurface)
+
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
         pygame.display.flip()
 
@@ -503,7 +507,7 @@ class Game:
             self.clock.tick(60)
         return
 
-    def convert_to_gs(surf):
+    def convert_to_gs(self, surf):
         width, height = surf.get_size()
         for x in range(width):
             for y in range(height):
@@ -511,6 +515,7 @@ class Game:
                 average = (red + green + blue) // 3
                 gs_color = (average, average, average, alpha)
                 surf.set_at((x, y), gs_color)
+        return surf
 
 if __name__ == '__main__':
     game = Game()
