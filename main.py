@@ -9,9 +9,11 @@ import sys
 SCR = (640, 480)
 color_black = 0, 0, 0
 color_blue = 0, 0, 255
+color_red = 255, 0, 0
 CAP = 'Pyweek'
 
 def load_image(filename, colorkey=None):
+
     try:
         image = pygame.image.load(filename).convert()
     except pygame.error, message:
@@ -27,8 +29,11 @@ class Player():
     def __init__(self, filename, filename2, x, y):
         self.jumping = 0
         self.images = []
+
         self.images.append(load_image(filename))
         self.images.append(load_image(filename2))
+        self.images.append(load_image("./img/huki.png"))
+
         self.rect = self.images[0].get_rect(topleft=(x, y))
         self.walk = {}
         self.muki = 'RIGHT'
@@ -36,6 +41,7 @@ class Player():
         self.walkrate = 0
         self.grab_flag = True
         self.bullet_flag = False
+        self.inochi = 9
         
         ##Right_Stop
         surface = pygame.Surface((16, 16))
@@ -79,9 +85,16 @@ class Player():
         surface = surface.convert()
         self.walk.update({'left_jump':surface})
 
+        ##hukidashi
+        self.hukidashi = pygame.Surface((16, 16))
+        self.hukidashi.blit(self.images[2],(0, 0),(0, 0, 16, 16))
+        self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
+        self.hukidashi = self.hukidashi.convert()
+
         self.image = self.walk['right_stop']
-        self.rect.move_ip(120, 120)
-        
+        self.rect.move_ip(120, 120)        
+
+
     def update(self):
         if self.jumping > 0 and self.jumping < 39:
             self.jumping += 1
@@ -379,6 +392,7 @@ class Game:
         self.background = Background("./img/background.png")
         self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
+        self.purse_flag = False
         Tracker.instance().add_task(SampleBossTask(200, 160))
 
     def update(self):
@@ -398,7 +412,17 @@ class Game:
         for task in Tracker.instance().get_all_tasks():
             self.screen.blit(task.image, (task.rect.left, task.rect.top))
         self.screen.blit(self.player.image, self.player.rect)
-
+        self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
+        #Bullet no kazu
+        tamakazu = pygame.rect
+        tamakazu.left = self.player.rect.left + 3
+        tamakazu.top = self.player.rect.top - 13
+        tamakazu.width = self.player.inochi
+        tamakazu.height = 6
+        if slef.player.purse_flag:
+            self.convet_to_gs()
+        if self.player.inochi > 0:
+            pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
         self.counter.update()
 
         ## 320, 240 ==> 640, 480
@@ -411,6 +435,7 @@ class Game:
         
         keyin = pygame.key.get_pressed()
         self.player.walking = False
+
         if keyin[K_RIGHT]:
             self.player.muki = 'RIGHT'
             self.player.walking = True
@@ -421,12 +446,14 @@ class Game:
             self.player.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.player.jumping == 0 and not self.player.grab()):
             self.player.jumping = 1
-        if keyin[K_x] and not self.player.bullet_flag:
+        if keyin[K_x] and not self.player.bullet_flag and self.player.inochi > 0:
             self.player.bullet_flag = True
+            self.player.inochi -= 1
             way = Way.right if self.player.muki == 'RIGHT' else Way.left
             Tracker.instance().add_task(PlayerBulletTask(self.player.rect.left, self.player.rect.top, way))
         if not keyin[K_UP]:
             self.player.jumping = 0
+
 
     def mainLoop(self):
         while not self.quit:
@@ -435,11 +462,25 @@ class Game:
                     self.quit = True
                 if (event.type == KEYDOWN and event.key == K_ESCAPE):
                     self.quit = True
+                if (event.type == KEYDOWN and event.key == K_q):
+                    self.purse_flag = True
+            
+            if self.purse_flag:
+                self.purseLoop()
+            
             self.keyevent()
             self.player.update()
             self.update()
             self.draw()
             Tracker.instance().delete_tasks()
+            self.clock.tick(60)
+
+    def purseLoop(self):
+        while self.purse_flag:
+            self.draw()
+            for event in pygame.event.get():
+                if (event.type == KEYDOWN and event.key == K_q):
+                    self.purse_flag = False
             self.clock.tick(60)
 
     def titleLoop(self):
@@ -449,8 +490,8 @@ class Game:
             self.screen.fill(color_blue)
             self.screen.blit(titleimage, (60, 50))
             tmpSurface = pygame.Surface((320, 240))
-            tmpSurface.blit(self.screen, (0, 0))
             self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
+            tmpSurface.blit(self.screen, (0, 0))
             pygame.display.flip()
             for event in pygame.event.get():
                 if (event.type == KEYDOWN and event.key == K_SPACE):
@@ -462,7 +503,16 @@ class Game:
             self.clock.tick(60)
         return
 
+    def convert_to_gs(surf):
+        width, height = surf.get_size()
+        for x in range(width):
+            for y in range(height):
+                red, green, blue, alpha = surf.get_at((x, y))
+                average = (red + green + blue) // 3
+                gs_color = (average, average, average, alpha)
+                surf.set_at((x, y), gs_color)
+
 if __name__ == '__main__':
     game = Game()
-    game.titleLoop()
+    #game.titleLoop()
     game.mainLoop()
