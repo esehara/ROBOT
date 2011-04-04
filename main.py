@@ -297,8 +297,10 @@ class Way():
 class PlayerBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
+        #picture load
         surface = pygame.Surface((8, 8))
-        self.image = surface.convert()
+        self.image = load_image("./img/tama.png").convert()
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
