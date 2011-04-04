@@ -13,7 +13,6 @@ color_red = 255, 0, 0
 CAP = 'Pyweek'
 
 def load_image(filename, colorkey=None):
-
     try:
         image = pygame.image.load(filename).convert()
     except pygame.error, message:
@@ -94,7 +93,6 @@ class Player():
         self.image = self.walk['right_stop']
         self.rect.move_ip(120, 120)        
 
-
     def update(self):
         if self.jumping > 0 and self.jumping < 39:
             self.jumping += 1
@@ -122,7 +120,6 @@ class Player():
         if self.walkrate > 12:
             self.walkrate = 0
 
-
     def clash_wall(self, x, y):
         # Clash Left or not ?
 
@@ -141,8 +138,7 @@ class Player():
             if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
                 self.rect.move_ip(x, y)
             elif ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
-                self.jumping = 0            
- 
+                self.jumping = 0
 
     def grab(self):
 
@@ -457,7 +453,6 @@ class Game:
             Tracker.instance().add_task(PlayerBulletTask(self.player.rect.left, self.player.rect.top, way))
         if not keyin[K_UP]:
             self.player.jumping = 0
-
 
     def mainLoop(self):
         while not self.quit:
