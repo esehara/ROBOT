@@ -35,7 +35,7 @@ class Player():
         self.walking = False
         self.walkrate = 0
         self.grab_flag = True
-        surface = pygame.Surface((16, 16))
+        self.bullet_flag = False
         
         ##Right_Stop
         surface = pygame.Surface((16, 16))
@@ -299,31 +299,27 @@ class PlayerBulletTask(BulletTask):
     def act(self):
         while True:
             if self.way == Way.right:
-<<<<<<< HEAD
-                self.x += 8
-                #Wall Clash is ....
-                if self.wall_clash():
-                    game.playerballet = False
+                self.rect.left += 8
+                if self.clash_wall():
                     yield False
             elif self.way == Way.left:
-                self.x -= 8
-                if self.wall_clash():
-                    game.playerballet = False
-=======
-                self.rect.left += 1
-                if self.rect.left > 320:
-                    yield False
-            elif self.way == Way.left:
-                self.rect.left -= 1
-                if self.rect.left < 0 - 8:
->>>>>>> af8ef3065aff1ac32a243062eda6ab7ab69d9838
+                self.rect.left -= 8
+                if self.clash_wall():
                     yield False
             yield True
 
-    def wall_clash(self):
-        mas_x = self.x / 16
-        mas_y = self.y / 16
-        return (game.landscape.wall_grid[mas_y][mas_x] > 0 or game.landscape.wall_grid[mas_y + 1][mas_x] > 0)
+    def clash_wall(self):
+        mas_x = self.rect.left / 16
+        mas_y = self.rect.top / 16
+        mas_b = self.rect.bottom / 16
+        if (game.landscape.wall_grid[mas_y][mas_x] > 0):
+            game.player.bullet_flag = False
+            return True
+        elif (game.landscape.wall_grid[mas_b][mas_x]>0):
+            game.player.bullet_flag = False
+            return True
+        else:
+            return False 
 
 class SampleBossBulletTask(BulletTask):
     def __init__(self, left, top, way):
@@ -383,7 +379,6 @@ class Game:
         self.background = Background("./img/background.png")
         self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
-        self.playerballet = False
         Tracker.instance().add_task(SampleBossTask(200, 160))
 
     def update(self):
@@ -426,15 +421,10 @@ class Game:
             self.player.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.player.jumping == 0 and not self.player.grab()):
             self.player.jumping = 1
-        if keyin[K_x]:
+        if keyin[K_x] and not self.player.bullet_flag:
+            self.player.bullet_flag = True
             way = Way.right if self.player.muki == 'RIGHT' else Way.left
-<<<<<<< HEAD
-            if not self.playerballet:
-                self.playerballet = True
-                Tracker.instance().add_task(PlayerBulletTask(self.player.rect.x, self.player.rect.y, way))
-=======
             Tracker.instance().add_task(PlayerBulletTask(self.player.rect.left, self.player.rect.top, way))
->>>>>>> af8ef3065aff1ac32a243062eda6ab7ab69d9838
         if not keyin[K_UP]:
             self.player.jumping = 0
 
@@ -474,5 +464,5 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    #game.titleLoop()
+    game.titleLoop()
     game.mainLoop()
