@@ -203,7 +203,8 @@ class Count():
         self.rect.move_ip(10,10)
 
     def update(self):
-        self.counter += 1
+        if not game.pause_flag:
+            self.counter += 1
         draw_count = str(self.counter)
         i = 0
         for keta in draw_count:
@@ -297,10 +298,13 @@ class Way():
 class PlayerBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
+
         #picture load
         surface = pygame.Surface((8, 8))
-        self.image = load_image("./img/tama.png").convert()
+        self.image = load_image("./img/tama.png",-1)
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+        surface.convert()
+
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
@@ -390,7 +394,7 @@ class Game:
         self.background = Background("./img/background.png")
         self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
-        self.purse_flag = False
+        self.pause_flag = False
         Tracker.instance().add_task(SampleBossTask(200, 160))
 
     def update(self):
@@ -427,7 +431,7 @@ class Game:
         tmpSurface = pygame.Surface((320, 240))
         tmpSurface.blit(self.screen, (0, 0))
 
-        if self.purse_flag:
+        if self.pause_flag:
             tmpSurface = self.convert_to_gs(tmpSurface)
 
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
@@ -448,6 +452,7 @@ class Game:
             self.player.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.player.jumping == 0 and not self.player.grab()):
             self.player.jumping = 1
+
         if keyin[K_x] and not self.player.bullet_flag and self.player.inochi > 0:
             self.player.bullet_flag = True
             self.player.inochi -= 1
@@ -464,9 +469,9 @@ class Game:
                 if (event.type == KEYDOWN and event.key == K_ESCAPE):
                     self.quit = True
                 if (event.type == KEYDOWN and event.key == K_q):
-                    self.purse_flag = True
+                    self.pause_flag = True
             
-            if self.purse_flag:
+            if self.pause_flag:
                 self.purseLoop()
             
             self.keyevent()
@@ -477,11 +482,11 @@ class Game:
             self.clock.tick(60)
 
     def purseLoop(self):
-        while self.purse_flag:
+        while self.pause_flag:
             self.draw()
             for event in pygame.event.get():
                 if (event.type == KEYDOWN and event.key == K_q):
-                    self.purse_flag = False
+                    self.pause_flag = False
             self.clock.tick(60)
 
     def titleLoop(self):
