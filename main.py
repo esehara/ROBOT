@@ -289,33 +289,33 @@ class Player(PlayerTask):
 
     def clash_wall(self, x, y):
         # Clash Left or not ?
-        mas_top = (self.rect.top + y) / 16
-        mas_left = (self.rect.left + x)/ 16
-        mas_bottom = ((self.rect.bottom + y) / 16 -1)
-        mas_right = ((self.rect.right + x) / 16) -2
+        cell_top = (self.rect.top + y) / 16
+        cell_left = (self.rect.left + x)/ 16
+        cell_bottom = ((self.rect.bottom + y) / 16 -1)
+        cell_right = ((self.rect.right + x) / 16) -2
 
         if x < 0:
-            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_left] > 0)):
+            if not ((game.landscape.wall_grid[cell_top][cell_left] > 0) or (game.landscape.wall_grid[cell_bottom][cell_left] > 0)):
                 self.rect.move_ip(x, y) 
         if x > 0:
-            if not ((game.landscape.wall_grid[mas_top][mas_right] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
+            if not ((game.landscape.wall_grid[cell_top][cell_right] > 0) or (game.landscape.wall_grid[cell_bottom][cell_right] > 0)):
                 self.rect.move_ip(x, y)
         if y < 0:
-            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
+            if not ((game.landscape.wall_grid[cell_top][cell_left] > 0) or (game.landscape.wall_grid[cell_top][cell_right] > 0)):
                 self.rect.move_ip(x, y)
-            elif ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
+            elif ((game.landscape.wall_grid[cell_top][cell_left] > 0) or (game.landscape.wall_grid[cell_top][cell_right] > 0)):
                 self.jumping = 0
 
     def gravity(self):
-        mas_left = self.rect.left / 16
-        mas_bottom = (self.rect.top + 18) / 16
-        mas_right = ((self.rect.right ) / 16) -2
+        cell_left = self.rect.left / 16
+        cell_bottom = (self.rect.top + 18) / 16
+        cell_right = ((self.rect.right ) / 16) -2
 
         if self.jumping > 0 and self.jumping < 39:
             return False
-        if not ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
+        if not ((game.landscape.wall_grid[cell_bottom][cell_left] > 0) or (game.landscape.wall_grid[cell_bottom][cell_right] > 0)):
             return True
-        elif ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
+        elif ((game.landscape.wall_grid[cell_bottom][cell_left] > 0) or (game.landscape.wall_grid[cell_bottom][cell_right] > 0)):
             return False
 
 class PlayerBulletTask(BulletTask):
@@ -346,13 +346,13 @@ class PlayerBulletTask(BulletTask):
             yield True
 
     def clash_wall(self):
-        mas_x = self.rect.left / 16
-        mas_y = self.rect.top / 16
-        mas_b = self.rect.bottom / 16
-        if (game.landscape.wall_grid[mas_y][mas_x] > 0):
+        cell_x = self.rect.left / 16
+        cell_y = self.rect.top / 16
+        cell_b = self.rect.bottom / 16
+        if (game.landscape.wall_grid[cell_y][cell_x] > 0):
             self.bullet_flag = False
             return True
-        elif (game.landscape.wall_grid[mas_b][mas_x]>0):
+        elif (game.landscape.wall_grid[cell_b][cell_x]>0):
             self.bullet_flag = False
             return True
         else:
