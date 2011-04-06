@@ -12,7 +12,7 @@ color_blue = 0, 0, 255
 color_red = 255, 0, 0
 CAP = 'Pyweek'
 
-def load_image(filename, colorkey=None):
+def load_image(filename, colorkey = None):
     try:
         image = pygame.image.load(filename).convert()
     except pygame.error, message:
@@ -23,6 +23,12 @@ def load_image(filename, colorkey=None):
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey, RLEACCEL)
     return image
+
+class Way():
+    right, left = range(2)
+
+class Motion():
+    right_stop, right_move, left_stop, left_move, right_jump, left_jump = range(6)
 
 class Player():
     def __init__(self, filename, filename2, x, y):
@@ -35,7 +41,7 @@ class Player():
 
         self.rect = self.images[0].get_rect(topleft=(x, y))
         self.walk = {}
-        self.muki = 'RIGHT'
+        self.way = Way.right
         self.walking = False
         self.walkrate = 0
         self.grab_flag = True
@@ -47,42 +53,42 @@ class Player():
         surface.blit(self.images[0], (0, 0), (0, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
-        self.walk.update({'right_stop':surface})
+        self.walk.update({Motion.right_stop:surface})
         
         ##Right_Walk
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0], (0, 0), (16, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
-        self.walk.update({'right_move':surface})
+        self.walk.update({Motion.right_move:surface})
         
         ##Left_Stop
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0],(0, 0),(0, 16, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
-        self.walk.update({'left_stop':surface})
+        self.walk.update({Motion.left_stop:surface})
         
         ##Right_Walk
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[0], (0, 0), (16, 16, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
-        self.walk.update({'left_move':surface})
+        self.walk.update({Motion.left_move:surface})
         
         ##RightJump
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[1],(0, 0), (0, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
-        self.walk.update({'right_jump':surface})
+        self.walk.update({Motion.right_jump:surface})
         
         ##leftJump
         surface = pygame.Surface((16, 16))
         surface.blit(self.images[1], (0, 0), (16, 0, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
-        self.walk.update({'left_jump':surface})
+        self.walk.update({Motion.left_jump:surface})
 
         ##hukidashi
         self.hukidashi = pygame.Surface((16, 16))
@@ -90,7 +96,7 @@ class Player():
         self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
         self.hukidashi = self.hukidashi.convert()
 
-        self.image = self.walk['right_stop']
+        self.image = self.walk[Motion.right_stop]
         self.rect.move_ip(120, 120)        
 
     def update(self):
@@ -108,15 +114,15 @@ class Player():
         self.walkrate += 1
 
         if self.walking is False or self.walkrate < 6:
-            if self.muki == 'RIGHT':
-             self.image = self.walk['right_stop'] if self.jumping < 1 else self.walk['right_jump'] 
-            elif self.muki == 'LEFT':
-                self.image = self.walk['left_stop'] if self.jumping < 1 else self.walk['left_jump'] 
+            if self.way == Way.right:
+             self.image = self.walk[Motion.right_stop] if self.jumping < 1 else self.walk[Motion.right_jump]
+            elif self.way == Way.left:
+                self.image = self.walk[Motion.left_stop] if self.jumping < 1 else self.walk[Motion.left_jump]
         elif self.walking is True and self.walkrate > 6:
-            if self.muki == 'RIGHT':
-                self.image = self.walk['right_move'] if self.jumping < 1 else self.walk['right_jump'] 
-            elif self.muki == 'LEFT':
-                self.image = self.walk['left_move'] if self.jumping < 1 else self.walk['left_jump'] 
+            if self.way == Way.right:
+                self.image = self.walk[Motion.right_move] if self.jumping < 1 else self.walk[Motion.right_jump]
+            elif self.way == Way.left:
+                self.image = self.walk[Motion.left_move] if self.jumping < 1 else self.walk[Motion.left_jump]
         if self.walkrate > 12:
             self.walkrate = 0
 
@@ -291,9 +297,6 @@ class Tracker(Singleton):
             for task in task_container:
                 yield task
 
-class Way():
-    right, left = range(2)
-
 class PlayerBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
@@ -439,11 +442,11 @@ class Game:
         self.player.walking = False
 
         if keyin[K_RIGHT]:
-            self.player.muki = 'RIGHT'
+            self.player.way = Way.right
             self.player.walking = True
             self.player.clash_wall(2, 0)
         if keyin[K_LEFT]:
-            self.player.muki = 'LEFT'
+            self.player.way = Way.left
             self.player.walking = True
             self.player.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.player.jumping == 0 and not self.player.grab()):
@@ -451,7 +454,7 @@ class Game:
         if keyin[K_x] and not self.player.bullet_flag and self.player.inochi > 0:
             self.player.bullet_flag = True
             self.player.inochi -= 1
-            way = Way.right if self.player.muki == 'RIGHT' else Way.left
+            way = Way.right if self.player.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletTask(self.player.rect.left, self.player.rect.top, way))
         if not keyin[K_UP]:
             self.player.jumping = 0
