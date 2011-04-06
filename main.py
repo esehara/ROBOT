@@ -30,135 +30,6 @@ class Way():
 class Motion():
     right_stop, right_move, left_stop, left_move, right_jump, left_jump = range(6)
 
-class Player():
-    def __init__(self, filename, filename2, x, y):
-        self.jumping = 0
-        self.images = []
-
-        self.images.append(load_image(filename))
-        self.images.append(load_image(filename2))
-        self.images.append(load_image("./img/huki.png"))
-
-        self.rect = self.images[0].get_rect(topleft=(x, y))
-        self.walk = {}
-        self.way = Way.right
-        self.walking = False
-        self.walkrate = 0
-        self.grab_flag = True
-        self.bullet_flag = False
-        self.inochi = 9
-        
-        ##Right_Stop
-        surface = pygame.Surface((16, 16))
-        surface.blit(self.images[0], (0, 0), (0, 0, 16, 16))
-        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface = surface.convert()
-        self.walk.update({Motion.right_stop:surface})
-        
-        ##Right_Walk
-        surface = pygame.Surface((16, 16))
-        surface.blit(self.images[0], (0, 0), (16, 0, 16, 16))
-        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface = surface.convert()
-        self.walk.update({Motion.right_move:surface})
-        
-        ##Left_Stop
-        surface = pygame.Surface((16, 16))
-        surface.blit(self.images[0],(0, 0),(0, 16, 16, 16))
-        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface = surface.convert()
-        self.walk.update({Motion.left_stop:surface})
-        
-        ##Right_Walk
-        surface = pygame.Surface((16, 16))
-        surface.blit(self.images[0], (0, 0), (16, 16, 16, 16))
-        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface = surface.convert()
-        self.walk.update({Motion.left_move:surface})
-        
-        ##RightJump
-        surface = pygame.Surface((16, 16))
-        surface.blit(self.images[1],(0, 0), (0, 0, 16, 16))
-        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface = surface.convert()
-        self.walk.update({Motion.right_jump:surface})
-        
-        ##leftJump
-        surface = pygame.Surface((16, 16))
-        surface.blit(self.images[1], (0, 0), (16, 0, 16, 16))
-        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface = surface.convert()
-        self.walk.update({Motion.left_jump:surface})
-
-        ##hukidashi
-        self.hukidashi = pygame.Surface((16, 16))
-        self.hukidashi.blit(self.images[2],(0, 0),(0, 0, 16, 16))
-        self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
-        self.hukidashi = self.hukidashi.convert()
-
-        self.image = self.walk[Motion.right_stop]
-        self.rect.move_ip(120, 120)        
-
-    def update(self):
-        if self.jumping > 0 and self.jumping < 39:
-            self.jumping += 1
-            self.clash_wall(0, -2)
-        elif self.jumping > 38:
-            self.jumping = 0
-
-        self.grab_flag = self.grab()
-
-        if self.grab_flag:
-            self.rect.move_ip(0, 2)
-            
-        self.walkrate += 1
-
-        if self.walking is False or self.walkrate < 6:
-            if self.way == Way.right:
-             self.image = self.walk[Motion.right_stop] if self.jumping < 1 else self.walk[Motion.right_jump]
-            elif self.way == Way.left:
-                self.image = self.walk[Motion.left_stop] if self.jumping < 1 else self.walk[Motion.left_jump]
-        elif self.walking is True and self.walkrate > 6:
-            if self.way == Way.right:
-                self.image = self.walk[Motion.right_move] if self.jumping < 1 else self.walk[Motion.right_jump]
-            elif self.way == Way.left:
-                self.image = self.walk[Motion.left_move] if self.jumping < 1 else self.walk[Motion.left_jump]
-        if self.walkrate > 12:
-            self.walkrate = 0
-
-    def clash_wall(self, x, y):
-        # Clash Left or not ?
-
-        mas_top = (self.rect.top + y) / 16
-        mas_left = (self.rect.left + x)/ 16
-        mas_bottom = ((self.rect.bottom + y) / 16 -1)
-        mas_right = ((self.rect.right + x) / 16) -2
-
-        if x < 0:
-            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_left] > 0)):
-                self.rect.move_ip(x, y) 
-        if x > 0:
-            if not ((game.landscape.wall_grid[mas_top][mas_right] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
-                self.rect.move_ip(x, y)
-        if y < 0:
-            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
-                self.rect.move_ip(x, y)
-            elif ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
-                self.jumping = 0
-
-    def grab(self):
-
-        mas_left = self.rect.left / 16
-        mas_bottom = (self.rect.top + 18) / 16
-        mas_right = ((self.rect.right ) / 16) -2
-
-        if self.jumping > 0 and self.jumping < 39:
-            return False
-        if not ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
-            return True        
-        elif ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
-            return False
-
 class Background():
     def __init__(self, filename):
         self.image = load_image(filename)
@@ -298,11 +169,159 @@ class Tracker(Singleton):
             for task in task_container:
                 yield task
 
+class Player(PlayerTask):
+    def __init__(self, filename, filename2, left, top):
+        Task.__init__(self)
+        self.jumping = 0
+        base_images = []
+
+        base_images.append(load_image(filename))
+        base_images.append(load_image(filename2))
+        base_images.append(load_image("./img/huki.png"))
+
+        self.rect = base_images[0].get_rect(topleft=(left, top))
+        self.walk = {}
+        self.way = Way.right
+        self.walking = False
+        self.walkcount = 0
+        self.gravity_flag = True
+        self.bullet_flag = False
+        self.inochi = 9
+        
+        surface = pygame.Surface((16, 16))
+        surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+        surface = surface.convert()
+        self.walk.update({Motion.right_stop:surface})
+        
+        surface = pygame.Surface((16, 16))
+        surface.blit(base_images[0], (0, 0), (16, 0, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+        surface = surface.convert()
+        self.walk.update({Motion.right_move:surface})
+        
+        surface = pygame.Surface((16, 16))
+        surface.blit(base_images[0],(0, 0),(0, 16, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+        surface = surface.convert()
+        self.walk.update({Motion.left_stop:surface})
+        
+        surface = pygame.Surface((16, 16))
+        surface.blit(base_images[0], (0, 0), (16, 16, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+        surface = surface.convert()
+        self.walk.update({Motion.left_move:surface})
+        
+        surface = pygame.Surface((16, 16))
+        surface.blit(base_images[1],(0, 0), (0, 0, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+        surface = surface.convert()
+        self.walk.update({Motion.right_jump:surface})
+        
+        surface = pygame.Surface((16, 16))
+        surface.blit(base_images[1], (0, 0), (16, 0, 16, 16))
+        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+        surface = surface.convert()
+        self.walk.update({Motion.left_jump:surface})
+
+        self.hukidashi = pygame.Surface((16, 16))
+        self.hukidashi.blit(base_images[2],(0, 0),(0, 0, 16, 16))
+        self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
+        self.hukidashi = self.hukidashi.convert()
+
+        self.image = self.walk[Motion.right_stop]
+        self.rect.move_ip(120, 120)        
+
+    def keyevent(self):
+        keyin = pygame.key.get_pressed()
+        self.walking = False
+
+        if keyin[K_RIGHT]:
+            self.way = Way.right
+            self.walking = True
+            self.clash_wall(2, 0)
+        if keyin[K_LEFT]:
+            self.way = Way.left
+            self.walking = True
+            self.clash_wall(-2, 0)
+        if ((keyin[K_UP] | keyin[K_z]) and self.jumping == 0 and not self.gravity()):
+            self.jumping = 1
+        if keyin[K_x] and not self.bullet_flag and self.inochi > 0:
+            self.bullet_flag = True
+            self.inochi -= 1
+            way = Way.right if self.way == Way.right else Way.left
+            Tracker.instance().add_task(PlayerBulletTask(self.rect.left, self.rect.top, way))
+        if not keyin[K_UP]:
+            self.jumping = 0
+
+    def motion(self):
+        if self.jumping > 0 and self.jumping < 39:
+            self.jumping += 1
+            self.clash_wall(0, -2)
+        elif self.jumping > 38:
+            self.jumping = 0
+
+        self.gravity_flag = self.gravity()
+
+        if self.gravity_flag:
+            self.rect.move_ip(0, 2)
+            
+        self.walkcount += 1
+
+        if self.walking is False or self.walkcount < 6:
+            if self.way == Way.right:
+             self.image = self.walk[Motion.right_stop] if self.jumping < 1 else self.walk[Motion.right_jump]
+            elif self.way == Way.left:
+                self.image = self.walk[Motion.left_stop] if self.jumping < 1 else self.walk[Motion.left_jump]
+        elif self.walking is True and self.walkcount > 6:
+            if self.way == Way.right:
+                self.image = self.walk[Motion.right_move] if self.jumping < 1 else self.walk[Motion.right_jump]
+            elif self.way == Way.left:
+                self.image = self.walk[Motion.left_move] if self.jumping < 1 else self.walk[Motion.left_jump]
+        if self.walkcount > 12:
+            self.walkcount = 0
+
+    def act(self):
+        while True:
+            self.keyevent()
+            self.motion()
+            yield True
+
+    def clash_wall(self, x, y):
+        # Clash Left or not ?
+        mas_top = (self.rect.top + y) / 16
+        mas_left = (self.rect.left + x)/ 16
+        mas_bottom = ((self.rect.bottom + y) / 16 -1)
+        mas_right = ((self.rect.right + x) / 16) -2
+
+        if x < 0:
+            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_left] > 0)):
+                self.rect.move_ip(x, y) 
+        if x > 0:
+            if not ((game.landscape.wall_grid[mas_top][mas_right] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
+                self.rect.move_ip(x, y)
+        if y < 0:
+            if not ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
+                self.rect.move_ip(x, y)
+            elif ((game.landscape.wall_grid[mas_top][mas_left] > 0) or (game.landscape.wall_grid[mas_top][mas_right] > 0)):
+                self.jumping = 0
+
+    def gravity(self):
+        mas_left = self.rect.left / 16
+        mas_bottom = (self.rect.top + 18) / 16
+        mas_right = ((self.rect.right ) / 16) -2
+
+        if self.jumping > 0 and self.jumping < 39:
+            return False
+        if not ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
+            return True
+        elif ((game.landscape.wall_grid[mas_bottom][mas_left] > 0) or (game.landscape.wall_grid[mas_bottom][mas_right] > 0)):
+            return False
+
 class PlayerBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
 
-        #picture load
         surface = pygame.Surface((8, 8))
         self.image = load_image("./img/tama.png",-1)
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
@@ -331,10 +350,10 @@ class PlayerBulletTask(BulletTask):
         mas_y = self.rect.top / 16
         mas_b = self.rect.bottom / 16
         if (game.landscape.wall_grid[mas_y][mas_x] > 0):
-            game.player.bullet_flag = False
+            self.bullet_flag = False
             return True
         elif (game.landscape.wall_grid[mas_b][mas_x]>0):
-            game.player.bullet_flag = False
+            self.bullet_flag = False
             return True
         else:
             return False 
@@ -392,12 +411,12 @@ class Game:
         pygame.display.set_caption(CAP)
         self.clock = pygame.time.Clock()
         self.quit = False
-        self.player = Player("./img/robot.png", "./img/robojump.png", 0, 0)
         self.wall = Wall("./img/wall.png")
         self.background = Background("./img/background.png")
         self.landscape = Landscape("./data/background.json", "./data/wall.json")
         self.counter = Count()
         self.pause_flag = False
+        Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", 0, 0))
         Tracker.instance().add_task(SampleBossTask(200, 160))
 
     def update(self):
@@ -416,17 +435,15 @@ class Game:
                 self.screen.blit(self.wall.images[index], (x * 16, y * 16))
         for task in Tracker.instance().get_all_tasks():
             self.screen.blit(task.image, (task.rect.left, task.rect.top))
-        self.screen.blit(self.player.image, self.player.rect)
-        self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
-        #Bullet no kazu
-        tamakazu = pygame.rect
-        tamakazu.left = self.player.rect.left + 3
-        tamakazu.top = self.player.rect.top - 13
-        tamakazu.width = self.player.inochi
-        tamakazu.height = 6
+#        self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
+#        tamakazu = pygame.rect
+#        tamakazu.left = self.player.rect.left + 3
+#        tamakazu.top = self.player.rect.top - 13
+#        tamakazu.width = self.player.inochi
+#        tamakazu.height = 6
 
-        if self.player.inochi > 0:
-            pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
+#        if self.player.inochi > 0:
+#            pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
 
         self.counter.update()
 
@@ -441,28 +458,7 @@ class Game:
         pygame.display.flip()
 
     def keyevent(self):
-        
-        keyin = pygame.key.get_pressed()
-        self.player.walking = False
-
-        if keyin[K_RIGHT]:
-            self.player.way = Way.right
-            self.player.walking = True
-            self.player.clash_wall(2, 0)
-        if keyin[K_LEFT]:
-            self.player.way = Way.left
-            self.player.walking = True
-            self.player.clash_wall(-2, 0)
-        if ((keyin[K_UP] | keyin[K_z]) and self.player.jumping == 0 and not self.player.grab()):
-            self.player.jumping = 1
-
-        if keyin[K_x] and not self.player.bullet_flag and self.player.inochi > 0:
-            self.player.bullet_flag = True
-            self.player.inochi -= 1
-            way = Way.right if self.player.way == Way.right else Way.left
-            Tracker.instance().add_task(PlayerBulletTask(self.player.rect.left, self.player.rect.top, way))
-        if not keyin[K_UP]:
-            self.player.jumping = 0
+        pass
 
     def mainLoop(self):
         while not self.quit:
@@ -478,7 +474,6 @@ class Game:
                 self.purseLoop()
             
             self.keyevent()
-            self.player.update()
             self.update()
             self.draw()
             Tracker.instance().delete_tasks()
