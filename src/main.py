@@ -2,6 +2,7 @@
 import pygame
 from pygame.locals import * 
 from task import *
+from load_image import *
 import sys
 
 SCR = (640, 480)
@@ -9,18 +10,6 @@ color_black = 0, 0, 0
 color_blue = 0, 0, 255
 color_red = 255, 0, 0
 CAP = 'Pyweek'
-
-def load_image(filename, colorkey = None):
-    try:
-        image = pygame.image.load(filename).convert()
-    except pygame.error, message:
-        print "Cannot load image:", filename
-        raise SystemExit, message
-    if colorkey is not None:
-        if colorkey is -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey, RLEACCEL)
-    return image
 
 class Count():
     def __init__(self):
@@ -57,34 +46,34 @@ class Game:
         self.pause_flag = False
         Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", 0, 0))
         Tracker.instance().add_task(SampleBossTask(200, 160))
-
+        self.ground = Ground()
+        
     def update(self):
         Tracker.instance().act_all_tasks()
         return 
 
     def draw(self):
+    
         self.screen.fill(color_blue)
-
-#        self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
-#        tamakazu = pygame.rect
-#        tamakazu.left = self.player.rect.left + 3
-#        tamakazu.top = self.player.rect.top - 13
-#        tamakazu.width = self.player.inochi
-#        tamakazu.height = 6
-
-#        if self.player.inochi > 0:
-#            pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
-        ground = Ground()
-        self.screen.blit(ground.drawscreen(), (0, 0))
+        self.screen.blit(self.ground.drawscreen(), (0, 0))
         self.counter.update()
 
+# self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
+# tamakazu = pygame.rect
+# tamakazu.left = self.player.rect.left + 3
+# tamakazu.top = self.player.rect.top - 13
+# tamakazu.width = self.player.inochi
+# tamakazu.height = 6
+
+# if self.player.inochi > 0:
+# pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
         ## 320, 240 ==> 640, 480
+
         tmpSurface = pygame.Surface((320, 240))
         tmpSurface.blit(self.screen, (0, 0))
 
         if self.pause_flag:
             tmpSurface = self.convert_to_girl(tmpSurface)
-
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
         pygame.display.flip()
 

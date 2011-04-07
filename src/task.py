@@ -5,6 +5,8 @@ from main import *
 import random
 import json
 
+color_red = 255,0,0
+
 class Way():
     right, left = range(2)
 
@@ -97,19 +99,21 @@ class Ground(ScreenTask):
     def __init__(self):
         Task.__init__(self)
         self.screen = pygame.Surface((320, 240))
+        self.screen_back = pygame.Surface((320, 240))
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
                 index = self.landscape.background_grid[y][x]
-                self.screen.blit(self.background.images[index], (x * 16, y * 16))
+                self.screen_back.blit(self.background.images[index], (x * 16, y * 16))
         for y in range(len(self.landscape.wall_grid)):
             for x in range(len(self.landscape.wall_grid[y])):
                 index = self.landscape.wall_grid[y][x]
-                self.screen.blit(self.wall.images[index], (x * 16, y * 16))
-        for task in Tracker.instance().get_all_tasks():
-           self.screen.blit(task.image, (task.rect.left, task.rect.top))
+                self.screen_back.blit(self.wall.images[index], (x * 16, y * 16))
 
         
     def drawscreen(self):
+        self.screen.blit(self.screen_back, (0, 0))
+        for task in Tracker.instance().get_all_tasks():
+           self.screen.blit(task.image, (task.rect.left, task.rect.top))
         return self.screen
 
 
@@ -236,6 +240,7 @@ class Player(PlayerTask):
             Tracker.instance().add_task(PlayerBulletTask(self.rect.left, self.rect.top, way))
         if not keyin[K_UP]:
             self.jumping = 0
+  
 
     def motion(self):
         if self.jumping > 0 and self.jumping < 39:
