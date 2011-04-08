@@ -177,7 +177,6 @@ class Player(PlayerTask):
 
         base_images.append(load_image(filename))
         base_images.append(load_image(filename2))
-        base_images.append(load_image("./img/huki.png"))
 
         self.rect = base_images[0].get_rect(topleft=(left, top))
         self.walk = {}
@@ -223,11 +222,6 @@ class Player(PlayerTask):
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
         self.walk.update({Motion.left_jump:surface})
-
-        self.hukidashi = pygame.Surface((16, 16))
-        self.hukidashi.blit(base_images[2],(0, 0),(0, 0, 16, 16))
-        self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
-        self.hukidashi = self.hukidashi.convert()
 
         self.image = self.walk[Motion.right_stop]
         self.rect.move_ip(120, 120)        
@@ -435,6 +429,13 @@ class Game:
                 self.screen.blit(self.wall.images[index], (x * 16, y * 16))
         for task in Tracker.instance().get_all_tasks():
             self.screen.blit(task.image, (task.rect.left, task.rect.top))
+
+#        base_images.append(load_image("./img/huki.png"))
+#        self.hukidashi = pygame.Surface((16, 16))
+#        self.hukidashi.blit(base_images[2],(0, 0),(0, 0, 16, 16))
+#        self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
+#        self.hukidashi = self.hukidashi.convert()
+
 #        self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
 #        tamakazu = pygame.rect
 #        tamakazu.left = self.player.rect.left + 3
