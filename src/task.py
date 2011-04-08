@@ -97,7 +97,7 @@ class Task():
         self.generator = None
         self.is_deleted = False
         self.wall = Wall("./img/wall.png")
-        self.background = Background("./img/background.png")
+        self.background = Background("./img/background0" + str(stage) + ".png")
         self.landscape = Landscape("./data/background0" + str(stage) + ".json", "./data/wall0" + str(stage) + ".json")
 
     def act(self):
