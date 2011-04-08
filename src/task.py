@@ -81,28 +81,11 @@ class PlayerTask(Task):
 class PlayerBulletTask(Task):
     pass
 
-class TaskNotImplementedError():
-    pass
-
 class ScreenTask(Task):
     pass
 
-class Ground(ScreenTask):
-    def __init__(self):
-        Task.__init__(self)
-        self.image = pygame.Surface((320, 240))
-        for y in range(len(self.landscape.background_grid)):
-            for x in range(len(self.landscape.background_grid[y])):
-                index = self.landscape.background_grid[y][x]
-                self.image.blit(self.background.images[index], (x * 16, y * 16))
-        for y in range(len(self.landscape.wall_grid)):
-            for x in range(len(self.landscape.wall_grid[y])):
-                index = self.landscape.wall_grid[y][x]
-                self.image.blit(self.wall.images[index], (x * 16, y * 16))
-
-    def act(self):
-        while True:
-            yield
+class TaskNotImplementedError():
+    pass
 
 class Tracker(Singleton):
     def __init__(self):
@@ -174,13 +157,59 @@ class Tracker(Singleton):
                 is_collision = True
         return is_collision
 
+class CountTask(ScreenTask):
+    def __init__(self):
+        Task.__init__(self)
+        base_image = load_image("./img/counter.png", -1)
+        self.base_images = []
+        for i in range(base_image.get_rect().w / 16):
+            surface = pygame.Surface((16, 16))
+            surface.blit(base_image, (0, 0), (16 * i, 0, 16, 16))
+            surface = surface.convert()
+            surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+            self.base_images.append(surface)
+        self.counter = 0
+        self.rect = pygame.Rect(16, 16, 16 * 4, 16)
+        self.image = pygame.Surface((16 * 4, 16)).convert()
+        self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
+
+    def act(self):
+        while True:
+            self.image.fill((0, 0, 0))
+            self.counter += 1
+            draw_count = str(self.counter)
+            left = (3 - len(draw_count)) * 16
+            print len(draw_count)
+            i = 0
+            for digit in draw_count:
+                self.image.blit(self.base_images[int(digit)], (left + i * 16, 0))
+                i += 1
+            yield True
+
+class GroundTask(ScreenTask):
+    def __init__(self):
+        Task.__init__(self)
+        self.image = pygame.Surface((320, 240)).convert()
+        for y in range(len(self.landscape.background_grid)):
+            for x in range(len(self.landscape.background_grid[y])):
+                index = self.landscape.background_grid[y][x]
+                self.image.blit(self.background.images[index], (x * 16, y * 16))
+        for y in range(len(self.landscape.wall_grid)):
+            for x in range(len(self.landscape.wall_grid[y])):
+                index = self.landscape.wall_grid[y][x]
+                self.image.blit(self.wall.images[index], (x * 16, y * 16))
+
+    def act(self):
+        while True:
+            yield
+
 class Balloon(PlayerTask):
     def __init__(self, player_task):
         Task.__init__(self)
 
         self.player_task = player_task
 
-        self.image = pygame.Surface((16, 16))
+        self.image = pygame.Surface((16, 16)).convert()
         self.balloon = load_image("./img/balloon.png").convert()
         self.image.blit(self.balloon, (0, 0))
         self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
@@ -357,10 +386,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
 
-        surface = pygame.Surface((8, 8))
         self.image = load_image("./img/tama.png", -1)
-        surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-        surface.convert()
 
         self.rect.left = left
         self.rect.top = top
@@ -400,8 +426,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
 class SampleBossBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
-        surface = pygame.Surface((2, 2))
-        self.image = surface.convert()
+        self.image = pygame.Surface((2, 2)).convert()
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
@@ -423,8 +448,7 @@ class SampleBossBulletTask(BulletTask):
 class SampleBossTask(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        surface = pygame.Surface((16, 32))
-        self.image = surface.convert()
+        self.image = pygame.Surface((16, 32)).convert()
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
