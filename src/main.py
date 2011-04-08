@@ -44,6 +44,7 @@ class Game:
         self.quit = False
         self.counter = Count()
         self.pause_flag = False
+        self.pause_image = load_image("./img/pause.png",-1)
         Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", 0, 0))
         Tracker.instance().add_task(SampleBossTask(200, 160))
         Tracker.instance().add_task(Ground())
@@ -64,6 +65,8 @@ class Game:
 
         if self.pause_flag:
             tmpSurface = self.convert_to_girl(tmpSurface)
+            tmpSurface.blit(self.pause_image,(70,150))
+
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
         pygame.display.flip()
 
@@ -90,6 +93,7 @@ class Game:
             self.clock.tick(60)
 
     def purseLoop(self):
+       
         while self.pause_flag:
             self.draw()
             for event in pygame.event.get():
