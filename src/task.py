@@ -7,47 +7,7 @@ import random
 import json
 
 color_red = 255,0,0
-stage = 0
 
-class Tracker(Singleton):
-    def __init__(self):
-        Singleton.__init__(self)
-        self.bullet_tasks = []
-        self.enemy_tasks = []
-        self.player_tasks = []
-        self.tasks_containers = [
-            self.bullet_tasks,
-            self.enemy_tasks,
-            self.player_tasks]
-
-    def add_task(self, task):
-        if isinstance(task, BulletTask):
-            self.bullet_tasks.append(task)
-        elif isinstance(task, EnemyTask):
-            self.enemy_tasks.append(task)
-        elif isinstance(task, PlayerTask):
-            self.player_tasks.append(task)
-        else:
-            raise TaskNotImplementedError
-        task.generator = task.act()
-
-    def act_all_tasks(self):
-        for task in self.get_all_tasks():
-            ret = task.generator.next()
-            if ret == False:
-                task.is_deleted = True
-
-    def delete_tasks(self):
-        for task_container in self.tasks_containers:
-            for task in task_container:
-                if task.is_deleted == True:
-                    task_container.remove(task)
-
-    def get_all_tasks(self):
-        for task_container in self.tasks_containers:
-            for task in task_container:
-                yield task
-                
 class Way():
     right, left = range(2)
 
@@ -91,12 +51,18 @@ class Landscape():
 
 class Task():
     def __init__(self):
-        self.stage = 0
         self.image = None
         self.rect = Rect(0, 0, 0, 0)
         self.generator = None
         self.is_deleted = False
         self.wall = Wall("./img/wall.png")
+        self.stage_load()
+
+    def get_stage(self):
+        return Tracker.instance().stage
+
+    def stage_load(self):
+        stage = self.get_stage()
         self.background = Background("./img/background0" + str(stage) + ".png")
         self.landscape = Landscape("./data/background0" + str(stage) + ".json", "./data/wall0" + str(stage) + ".json")
 
@@ -152,6 +118,7 @@ class Tracker(Singleton):
             self.player_tasks,
             self.bullet_tasks,
             self.player_bullet_tasks]
+        self.stage = 0
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
@@ -419,13 +386,17 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         cell_x = self.rect.left / 16
         cell_y = self.rect.top / 16
         cell_b = self.rect.bottom / 16
+
         if (self.landscape.wall_grid[cell_y][cell_x] > 0):
             return True
         elif (self.landscape.wall_grid[cell_b][cell_x]>0):
             return True
         else:
             return False 
-        
+        if Tracker.instance().detect_collision(SampleBossTask, self):
+            return False
+        return True
+
 class SampleBossBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
@@ -466,14 +437,14 @@ class SampleBossTask(EnemyTask):
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
-                    yield False
+                    pass
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
-                    yield False
+                    pass 
                 yield True
 
 
