@@ -11,30 +11,6 @@ color_blue = 0, 0, 255
 color_red = 255, 0, 0
 CAP = 'Pyweek'
 
-class Count():
-    def __init__(self):
-        self.image = load_image("./img/counter.png", -1)
-        self.rect = self.image.get_rect()
-        self.images = []
-        for i in range(self.rect.w / 16):
-            surface = pygame.Surface((16, 16))
-            surface.blit(self.image, (0, 0), (16 * i, 0, 16, 16))
-            surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
-            surface = surface.convert()
-            self.images.append(surface)
-        self.counter = 0
-        self.rect.move_ip(10,10)
-
-    def update(self):
-        if not game.pause_flag:
-            self.counter += 1
-        draw_count = str(self.counter)
-        i = 0
-        for keta in draw_count:
-            game.screen.blit(self.images[int(keta)], (10 + i * 16, 10))
-            self.rect.left = 10 + i * 16
-            i += 1   
-
 class Game:
     def __init__(self):
         pygame.init()
@@ -42,13 +18,14 @@ class Game:
         pygame.display.set_caption(CAP)
         self.clock = pygame.time.Clock()
         self.quit = False
-        self.counter = Count()
         self.pause_flag = False
         self.pause_image = load_image("./img/pause.png", -1)
         Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", 0, 0))
         Tracker.instance().add_task(SampleBossTask(200, 160))
-        Tracker.instance().add_task(Ground())
+        Tracker.instance().add_task(GroundTask())
+        Tracker.instance().add_task(CountTask())
         self.is_pressed_pause_key = False
+        self.temp_surface = pygame.Surface((320, 240)).convert()
 
     def update(self):
         if not self.pause_flag:
@@ -56,19 +33,12 @@ class Game:
         return 
 
     def draw(self):
-        self.screen.fill(color_blue)
-        for task in Tracker.instance().get_all_tasks():
-           self.screen.blit(task.image, (task.rect.left, task.rect.top))
-        self.counter.update()
+        if not self.pause_flag:
+            self.temp_surface.fill(color_blue)
+            for task in Tracker.instance().get_all_tasks():
+                self.temp_surface.blit(task.image, (task.rect.left, task.rect.top))
 
-        tmpSurface = pygame.Surface((320, 240))
-        tmpSurface.blit(self.screen, (0, 0))
-
-#        if self.pause_flag:
-#            tmpSurface = self.convert_to_girl(tmpSurface)
-#            tmpSurface.blit(self.pause_image, (70, 150))
-
-        self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
+        self.screen.blit(pygame.transform.scale(self.temp_surface, (640, 480)), (0, 0)) 
         pygame.display.flip()
 
     def keyevent(self):
@@ -79,6 +49,8 @@ class Game:
                 self.pause_flag = False
             else:
                 self.pause_flag = True
+                self.temp_surface = self.convert_to_girl(self.temp_surface).convert()
+                self.temp_surface.blit(self.pause_image, (70, 150))
         if not keyin[K_q] and self.is_pressed_pause_key:
             self.is_pressed_pause_key = False
 
@@ -142,7 +114,7 @@ class Game:
                 gs_color = (average, average, average, alpha)
                 surf.set_at((x, y), gs_color)
         return surf
-        
+
 def main():
     global game
     game = Game()
