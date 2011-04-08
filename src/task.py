@@ -164,9 +164,9 @@ class Player(PlayerTask):
 
         base_images.append(load_image(filename))
         base_images.append(load_image(filename2))
-        base_images.append(load_image("./img/huki.png"))
+        base_images.append(load_image("./img/balloon.png"))
 
-        self.rect = base_images[0].get_rect(topleft=(left, top))
+        self.rect = base_images[0].get_rect(topleft = (left, top))
         self.walk = {}
         self.way = Way.right
         self.walking = False
@@ -188,7 +188,7 @@ class Player(PlayerTask):
         self.walk.update({Motion.right_move:surface})
         
         surface = pygame.Surface((16, 16))
-        surface.blit(base_images[0],(0, 0),(0, 16, 16, 16))
+        surface.blit(base_images[0], (0, 0),(0, 16, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
         self.walk.update({Motion.left_stop:surface})
@@ -211,10 +211,10 @@ class Player(PlayerTask):
         surface = surface.convert()
         self.walk.update({Motion.left_jump:surface})
 
-        self.hukidashi = pygame.Surface((16, 16))
-        self.hukidashi.blit(base_images[2],(0, 0),(0, 0, 16, 16))
-        self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
-        self.hukidashi = self.hukidashi.convert()
+        self.balloon = pygame.Surface((16, 16))
+        self.balloon.blit(base_images[2], (0, 0),(0, 0, 16, 16))
+        self.balloon.set_colorkey(self.balloon.get_at((0, 0)), RLEACCEL)
+        self.balloon = self.balloon.convert()
 
         self.image = self.walk[Motion.right_stop]
         self.rect.move_ip(120, 120)        
