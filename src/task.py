@@ -121,15 +121,15 @@ class ScreenTask(Task):
 class Ground(ScreenTask):
     def __init__(self):
         Task.__init__(self)
-        self.screen = pygame.Surface((320, 240))
-        self.screen_back = pygame.Surface((320, 240))
+        self.image = pygame.Surface((320, 240))
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
                 index = self.landscape.background_grid[y][x]
-                self.screen_back.blit(self.background.images[index], (x * 16, y * 16))
+                self.image.blit(self.background.images[index], (x * 16, y * 16))
         for y in range(len(self.landscape.wall_grid)):
             for x in range(len(self.landscape.wall_grid[y])):
                 index = self.landscape.wall_grid[y][x]
+<<<<<<< HEAD
                 if index == 99:
                     index = 0
                     
@@ -142,6 +142,87 @@ class Ground(ScreenTask):
            self.screen.blit(task.image, (task.rect.left, task.rect.top))
         return self.screen
 
+=======
+                self.image.blit(self.wall.images[index], (x * 16, y * 16))
+
+    def act(self):
+        while True:
+            yield
+
+class Tracker(Singleton):
+    def __init__(self):
+        Singleton.__init__(self)
+        self.screen_tasks = []
+        self.bullet_tasks = []
+        self.enemy_tasks = []
+        self.player_tasks = []
+        self.tasks_containers = [
+            self.screen_tasks,
+            self.bullet_tasks,
+            self.enemy_tasks,
+            self.player_tasks]
+
+    def add_task(self, task):
+        if isinstance(task, ScreenTask):
+            self.screen_tasks.append(task)
+        elif isinstance(task, BulletTask):
+            self.bullet_tasks.append(task)
+        elif isinstance(task, EnemyTask):
+            self.enemy_tasks.append(task)
+        elif isinstance(task, PlayerTask):
+            self.player_tasks.append(task)
+        else:
+            raise TaskNotImplementedError
+        task.generator = task.act()
+
+    def act_all_tasks(self):
+        for task in self.get_all_tasks():
+            ret = task.generator.next()
+            if ret == False:
+                task.is_deleted = True
+
+    def delete_tasks(self):
+        for task_container in self.tasks_containers:
+            for task in task_container:
+                if task.is_deleted == True:
+                    task_container.remove(task)
+
+    def get_all_tasks(self):
+        for task_container in self.tasks_containers:
+            for task in task_container:
+                yield task
+
+class Balloon(PlayerTask):
+    def __init__(self, player_task):
+        Task.__init__(self)
+
+        self.player_task = player_task
+
+        self.image = pygame.Surface((16, 16))
+        self.balloon = load_image("./img/balloon.png").convert()
+        self.image.blit(self.balloon, (0, 0))
+        self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
+
+        self.rect.left = player_task.rect.left
+        self.rect.top = player_task.rect.top - self.image.get_rect().height
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+
+    def act(self):
+        while True:
+            self.rect.left = self.player_task.rect.left
+            self.rect.top = self.player_task.rect.top - self.image.get_rect().height
+            self.image.blit(self.balloon, (0, 0))
+            life_rect = pygame.Rect(0, 0, 0, 0)
+            life_rect.left = 3
+            life_rect.top = 4
+            life_rect.w = self.player_task.life
+            life_rect.h = 6
+            color_red = 255, 0, 0
+            self.image.fill(color_red, life_rect)
+            yield
+
+>>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
 class Player(PlayerTask):
     def __init__(self, filename, filename2, left, top):
         Task.__init__(self)
@@ -150,19 +231,23 @@ class Player(PlayerTask):
 
         base_images.append(load_image(filename))
         base_images.append(load_image(filename2))
-        base_images.append(load_image("./img/huki.png"))
 
-        self.rect = base_images[0].get_rect(topleft=(left, top))
+        self.rect = base_images[0].get_rect(topleft = (left, top))
         self.walk = {}
         self.way = Way.right
         self.walking = False
         self.walkcount = 0
         self.gravity_flag = True
+<<<<<<< HEAD
 
         global bullet_flag
         bullet_flag = False
 
         self.inochi = 9
+=======
+        self.is_pressed_bullet_key = False
+        self.life = 9
+>>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -177,7 +262,7 @@ class Player(PlayerTask):
         self.walk.update({Motion.right_move:surface})
         
         surface = pygame.Surface((16, 16))
-        surface.blit(base_images[0],(0, 0),(0, 16, 16, 16))
+        surface.blit(base_images[0], (0, 0),(0, 16, 16, 16))
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface = surface.convert()
         self.walk.update({Motion.left_stop:surface})
@@ -200,13 +285,16 @@ class Player(PlayerTask):
         surface = surface.convert()
         self.walk.update({Motion.left_jump:surface})
 
-        self.hukidashi = pygame.Surface((16, 16))
-        self.hukidashi.blit(base_images[2],(0, 0),(0, 0, 16, 16))
-        self.hukidashi.set_colorkey(self.hukidashi.get_at((0, 0)), RLEACCEL)
-        self.hukidashi = self.hukidashi.convert()
-
         self.image = self.walk[Motion.right_stop]
+<<<<<<< HEAD
         self.rect.move_ip(160,160)
+=======
+        self.rect.move_ip(120, 120)
+
+        self.is_pressed_bullet_key = False
+
+        Tracker.instance().add_task(Balloon(self))
+>>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
 
     def keyevent(self):
         global bullet_flag
@@ -223,14 +311,26 @@ class Player(PlayerTask):
             self.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.jumping == 0 and not self.gravity()):
             self.jumping = 1
+<<<<<<< HEAD
         if keyin[K_x] and not bullet_flag and self.inochi > 0:
             bullet_flag = True
             self.inochi -= 1
+=======
+        if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
+            self.is_pressed_bullet_key = True
+            self.life -= 1
+>>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletTask(self.rect.left, self.rect.top, way))
+        if not keyin[K_x] and self.is_pressed_bullet_key:
+            self.is_pressed_bullet_key = False
         if not keyin[K_UP]:
             self.jumping = 0
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
     def motion(self):
         if self.jumping > 0 and self.jumping < 39:
             self.jumping += 1
@@ -242,7 +342,6 @@ class Player(PlayerTask):
 
         if self.gravity_flag:
             self.rect.move_ip(0, 2)
-            
         self.walkcount += 1
 
         if self.walking is False or self.walkcount < 6:
@@ -329,10 +428,15 @@ class PlayerBulletTask(BulletTask):
         cell_y = self.rect.top / 16
         cell_b = self.rect.bottom / 16
         if (self.landscape.wall_grid[cell_y][cell_x] > 0):
+<<<<<<< HEAD
             bullet_flag = False
             return True
         elif (self.landscape.wall_grid[cell_b][cell_x]>0):
             bullet_flag = False
+=======
+            return True
+        elif (self.landscape.wall_grid[cell_b][cell_x]>0):
+>>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
             return True
         else:
             return False 
