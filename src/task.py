@@ -7,6 +7,9 @@ import random
 import json
 
 color_red = 255,0,0
+max_jumping_frame = 35
+jumping_max_speed = max_jumping_frame
+jumping_division = 18
 
 class Way():
     right, left = range(2)
@@ -151,9 +154,9 @@ class Tracker(Singleton):
 
         is_collision = False
         for task in target_container:
-            horizontal_collision = (task.rect.left <= (actor_task.rect.left + actor_task.rect.w)) & (actor_task.rect.left <= (task.rect.left + task.rect.w))
-            vertical_collision = (task.rect.top <= (actor_task.rect.top + actor_task.rect.w)) & (actor_task.rect.top <= (task.rect.top + task.rect.h))
-            if horizontal_collision & vertical_collision:
+            horizontal_collision = (task.rect.left <= (actor_task.rect.left + actor_task.rect.w)) and (actor_task.rect.left <= (task.rect.left + task.rect.w))
+            vertical_collision = (task.rect.top <= (actor_task.rect.top + actor_task.rect.w)) and (actor_task.rect.top <= (task.rect.top + task.rect.h))
+            if horizontal_collision and vertical_collision:
                 is_collision = True
         return is_collision
 
@@ -235,7 +238,10 @@ class Balloon(PlayerTask):
 class Player(PlayerTask):
     def __init__(self, filename, filename2, left, top):
         Task.__init__(self)
-        self.jumping = 0
+        self.is_jump_upping = False
+        self.jumping_count = 0
+        self.base_x = 0
+        self.last_jump_height = 0
         base_images = []
 
         base_images.append(load_image(filename))
@@ -246,7 +252,6 @@ class Player(PlayerTask):
         self.way = Way.right
         self.walking = False
         self.walkcount = 0
-        self.gravity_flag = True
         self.is_pressed_bullet_key = False
         self.life = 9
         
@@ -301,13 +306,20 @@ class Player(PlayerTask):
         if keyin[K_RIGHT]:
             self.way = Way.right
             self.walking = True
-            self.clash_wall(2, 0)
+            if self.is_collision_wall(2, 0):
+                self.rect.left += 2
         if keyin[K_LEFT]:
             self.way = Way.left
             self.walking = True
-            self.clash_wall(-2, 0)
-        if ((keyin[K_UP] | keyin[K_z]) and self.jumping == 0 and not self.gravity()):
-            self.jumping = 1
+            if self.is_collision_wall(-2, 0):
+                self.rect.left -= 2
+        if (keyin[K_UP] or keyin[K_z]) and not self.is_jump_upping and self.is_on_flooring():
+            self.is_jump_upping = True
+            self.base_x = -1 * jumping_max_speed
+            self.last_jump_height = (self.base_x ** 2) / jumping_division
+        if not (keyin[K_UP] or keyin[K_z]) and self.is_jump_upping and not self.is_on_flooring():
+            self.is_jump_upping = False
+            self.reset_jump_status()
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
@@ -315,32 +327,32 @@ class Player(PlayerTask):
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
             self.is_pressed_bullet_key = False
-        if not keyin[K_UP]:
-            self.jumping = 0
 
     def motion(self):
-        if self.jumping > 0 and self.jumping < 39:
-            self.jumping += 1
-            self.clash_wall(0, -2)
-        elif self.jumping > 38:
-            self.jumping = 0
+        if self.is_jump_upping:
+            self.jumping_count += 1
+            self.jump_up()
+        else:
+            if not self.is_on_flooring(): # down
+                self.jump_down()
+            else: # reach floor
+                self.reset_jump_status()
 
-        self.gravity_flag = self.gravity()
+        if self.jumping_count >= max_jumping_frame or self.is_head_butt():
+            self.reset_jump_status()
 
-        if self.gravity_flag:
-            self.rect.move_ip(0, 2)
         self.walkcount += 1
 
         if self.walking is False or self.walkcount < 6:
             if self.way == Way.right:
-                self.image = self.walk[Motion.right_stop] if self.jumping < 1 else self.walk[Motion.right_jump]
+                self.image = self.walk[Motion.right_stop] if not self.is_jump_upping else self.walk[Motion.right_jump]
             elif self.way == Way.left:
-                self.image = self.walk[Motion.left_stop] if self.jumping < 1 else self.walk[Motion.left_jump]
+                self.image = self.walk[Motion.left_stop] if not self.is_jump_upping else self.walk[Motion.left_jump]
         elif self.walking is True and self.walkcount > 6:
             if self.way == Way.right:
-                self.image = self.walk[Motion.right_move] if self.jumping < 1 else self.walk[Motion.right_jump]
+                self.image = self.walk[Motion.right_move] if not self.is_jump_upping else self.walk[Motion.right_jump]
             elif self.way == Way.left:
-                self.image = self.walk[Motion.left_move] if self.jumping < 1 else self.walk[Motion.left_jump]
+                self.image = self.walk[Motion.left_move] if not self.is_jump_upping else self.walk[Motion.left_jump]
         if self.walkcount > 12:
             self.walkcount = 0
 
@@ -349,37 +361,83 @@ class Player(PlayerTask):
             self.keyevent()
             self.motion()
             yield True
-            
-    def clash_wall(self, x, y):
-        # Clash Left or not ?
-        cell_top = (self.rect.top + y) / 16
-        cell_left = (self.rect.left + x)/ 16
-        cell_bottom = ((self.rect.bottom + y) / 16 -1)
-        cell_right = ((self.rect.right + x) / 16) -2
+
+    def jump_up(self):
+        self.update_jump_status()
+        jump_height = self.calculate_jump_height()
+        cell_top = int(self.rect.top + jump_height) / 16
+        cell_left = self.rect.left / 16
+        cell_right = (self.rect.right / 16) - 2
+
+        if not ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)):
+            self.rect.top -= jump_height
+
+    def jump_down(self):
+        self.update_jump_status()
+        jump_height = self.calculate_jump_height()
+        cell_top = int(self.rect.top + jump_height) / 16
+        next_cell_bottom = int(self.rect.bottom + jump_height) / 16 - 1
+        cell_left = self.rect.left / 16
+        cell_right = (self.rect.right / 16) - 2
+
+        is_collision_top = (self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)
+        is_collision_next_bottom = (self.landscape.wall_grid[next_cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[next_cell_bottom][cell_right] > 0)
+        if not is_collision_top:
+            self.rect.top += jump_height
+            if is_collision_next_bottom:
+                self.rect.top -= (self.rect.top + 1) - (int((self.rect.top + 1) / 16) * 16)
+
+    def is_head_butt(self):
+        jump_height = self.calculate_jump_height()
+        cell_top = int(self.rect.top - jump_height) / 16
+        cell_left = self.rect.left / 16
+        cell_right = (self.rect.right / 16) - 2
+
+        if ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)):
+            return True
+        else:
+            return False
+
+    def calculate_jump_height(self):
+        height = self.last_jump_height - (self.base_x ** 2) / jumping_division
+        return abs(height)
+
+    def update_jump_status(self):
+        self.last_jump_height = (self.base_x ** 2) / jumping_division
+        self.base_x += 1
+
+    def reset_jump_status(self):
+        self.last_jump_height = 0
+        self.base_x = 0
+        self.is_jump_upping = False
+        self.jumping_count = 0
+
+    def is_collision_wall(self, x, y):
+        cell_top = int(self.rect.top + y) / 16
+        cell_left = (self.rect.left + x) / 16
+        cell_bottom = ((self.rect.bottom + y) / 16 - 1)
+        cell_right = ((self.rect.right + x) / 16) - 2
 
         if x < 0:
             if not ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_left] > 0)):
-                self.rect.move_ip(x, y) 
+                return True
         if x > 0:
             if not ((self.landscape.wall_grid[cell_top][cell_right] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
-                self.rect.move_ip(x, y)
+                return True
         if y < 0:
             if not ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)):
-                self.rect.move_ip(x, y)
-            elif ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)):
-                self.jumping = 0
+                return True
+        return False
 
-    def gravity(self):
+    def is_on_flooring(self):
         cell_left = self.rect.left / 16
-        cell_bottom = (self.rect.top + 18) / 16
-        cell_right = ((self.rect.right ) / 16) -2
+        cell_bottom = int(self.rect.top + 18) / 16
+        cell_right = (self.rect.right / 16) - 2
 
-        if self.jumping > 0 and self.jumping < 39:
-            return False
         if not ((self.landscape.wall_grid[cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
-            return True
-        elif ((self.landscape.wall_grid[cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
             return False
+        elif ((self.landscape.wall_grid[cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
+            return True
 
 class PlayerBulletNormalTask(PlayerBulletTask):
     def __init__(self, left, top, way):
