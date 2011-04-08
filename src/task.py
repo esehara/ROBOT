@@ -182,7 +182,6 @@ class Balloon(PlayerTask):
             life_rect.w = self.player_task.life
             life_rect.h = 6
             color_red = 255, 0, 0
-#            pygame.draw.rect(self.image, color_red, life_rect, 0)
             self.image.fill(color_red, life_rect)
             yield
 
@@ -201,7 +200,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.gravity_flag = True
-        self.bullet_flag = False
+        self.is_pressed_bullet_key = False
         self.life = 9
         
         surface = pygame.Surface((16, 16))
@@ -241,7 +240,9 @@ class Player(PlayerTask):
         self.walk.update({Motion.left_jump:surface})
 
         self.image = self.walk[Motion.right_stop]
-        self.rect.move_ip(120, 120)        
+        self.rect.move_ip(120, 120)
+
+        self.is_pressed_bullet_key = False
 
         Tracker.instance().add_task(Balloon(self))
 
@@ -259,11 +260,13 @@ class Player(PlayerTask):
             self.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.jumping == 0 and not self.gravity()):
             self.jumping = 1
-        if keyin[K_x] and not self.bullet_flag and self.life > 0:
-            self.bullet_flag = True
+        if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
+            self.is_pressed_bullet_key = True
             self.life -= 1
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletTask(self.rect.left, self.rect.top, way))
+        if not keyin[K_x] and self.is_pressed_bullet_key:
+            self.is_pressed_bullet_key = False
         if not keyin[K_UP]:
             self.jumping = 0
 
@@ -362,10 +365,8 @@ class PlayerBulletTask(BulletTask):
         cell_y = self.rect.top / 16
         cell_b = self.rect.bottom / 16
         if (self.landscape.wall_grid[cell_y][cell_x] > 0):
-            self.bullet_flag = False
             return True
         elif (self.landscape.wall_grid[cell_b][cell_x]>0):
-            self.bullet_flag = False
             return True
         else:
             return False 
