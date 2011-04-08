@@ -15,7 +15,7 @@ class Count():
     def __init__(self):
         self.image = load_image("./img/counter.png", -1)
         self.rect = self.image.get_rect()
-        self.images = []       
+        self.images = []
         for i in range(self.rect.w / 16):
             surface = pygame.Surface((16, 16))
             surface.blit(self.image, (0, 0), (16 * i, 0, 16, 16))
@@ -46,7 +46,7 @@ class Game:
         self.pause_flag = False
         Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", 0, 0))
         Tracker.instance().add_task(SampleBossTask(200, 160))
-        self.ground = Ground()
+        Tracker.instance().add_task(Ground())
         
     def update(self):
         Tracker.instance().act_all_tasks()
@@ -55,19 +55,9 @@ class Game:
     def draw(self):
     
         self.screen.fill(color_blue)
-        self.screen.blit(self.ground.drawscreen(), (0, 0))
+        for task in Tracker.instance().get_all_tasks():
+           self.screen.blit(task.image, (task.rect.left, task.rect.top))
         self.counter.update()
-
-# self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
-# tamakazu = pygame.rect
-# tamakazu.left = self.player.rect.left + 3
-# tamakazu.top = self.player.rect.top - 13
-# tamakazu.width = self.player.inochi
-# tamakazu.height = 6
-
-# if self.player.inochi > 0:
-# pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
-        ## 320, 240 ==> 640, 480
 
         tmpSurface = pygame.Surface((320, 240))
         tmpSurface.blit(self.screen, (0, 0))

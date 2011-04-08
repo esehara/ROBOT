@@ -98,38 +98,37 @@ class ScreenTask(Task):
 class Ground(ScreenTask):
     def __init__(self):
         Task.__init__(self)
-        self.screen = pygame.Surface((320, 240))
-        self.screen_back = pygame.Surface((320, 240))
+        self.image = pygame.Surface((320, 240))
         for y in range(len(self.landscape.background_grid)):
             for x in range(len(self.landscape.background_grid[y])):
                 index = self.landscape.background_grid[y][x]
-                self.screen_back.blit(self.background.images[index], (x * 16, y * 16))
+                self.image.blit(self.background.images[index], (x * 16, y * 16))
         for y in range(len(self.landscape.wall_grid)):
             for x in range(len(self.landscape.wall_grid[y])):
                 index = self.landscape.wall_grid[y][x]
-                self.screen_back.blit(self.wall.images[index], (x * 16, y * 16))
+                self.image.blit(self.wall.images[index], (x * 16, y * 16))
 
-        
-    def drawscreen(self):
-        self.screen.blit(self.screen_back, (0, 0))
-        for task in Tracker.instance().get_all_tasks():
-           self.screen.blit(task.image, (task.rect.left, task.rect.top))
-        return self.screen
-
+    def act(self):
+        while True:
+            yield
 
 class Tracker(Singleton):
     def __init__(self):
         Singleton.__init__(self)
+        self.screen_tasks = []
         self.bullet_tasks = []
         self.enemy_tasks = []
         self.player_tasks = []
         self.tasks_containers = [
+            self.screen_tasks,
             self.bullet_tasks,
             self.enemy_tasks,
             self.player_tasks]
 
     def add_task(self, task):
-        if isinstance(task, BulletTask):
+        if isinstance(task, ScreenTask):
+            self.screen_tasks.append(task)
+        elif isinstance(task, BulletTask):
             self.bullet_tasks.append(task)
         elif isinstance(task, EnemyTask):
             self.enemy_tasks.append(task)
@@ -156,6 +155,37 @@ class Tracker(Singleton):
             for task in task_container:
                 yield task
 
+class Balloon(PlayerTask):
+    def __init__(self, player_task):
+        Task.__init__(self)
+
+        self.player_task = player_task
+
+        self.image = pygame.Surface((16, 16))
+        self.balloon = load_image("./img/balloon.png").convert()
+        self.image.blit(self.balloon, (0, 0))
+        self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
+
+        self.rect.left = player_task.rect.left
+        self.rect.top = player_task.rect.top - self.image.get_rect().height
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+
+    def act(self):
+        while True:
+            self.rect.left = self.player_task.rect.left
+            self.rect.top = self.player_task.rect.top - self.image.get_rect().height
+            self.image.blit(self.balloon, (0, 0))
+            life_rect = pygame.Rect(0, 0, 0, 0)
+            life_rect.left = 3
+            life_rect.top = 4
+            life_rect.w = self.player_task.life
+            life_rect.h = 6
+            color_red = 255, 0, 0
+#            pygame.draw.rect(self.image, color_red, life_rect, 0)
+            self.image.fill(color_red, life_rect)
+            yield
+
 class Player(PlayerTask):
     def __init__(self, filename, filename2, left, top):
         Task.__init__(self)
@@ -164,7 +194,6 @@ class Player(PlayerTask):
 
         base_images.append(load_image(filename))
         base_images.append(load_image(filename2))
-        base_images.append(load_image("./img/balloon.png"))
 
         self.rect = base_images[0].get_rect(topleft = (left, top))
         self.walk = {}
@@ -173,7 +202,7 @@ class Player(PlayerTask):
         self.walkcount = 0
         self.gravity_flag = True
         self.bullet_flag = False
-        self.inochi = 9
+        self.life = 9
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -211,13 +240,10 @@ class Player(PlayerTask):
         surface = surface.convert()
         self.walk.update({Motion.left_jump:surface})
 
-        self.balloon = pygame.Surface((16, 16))
-        self.balloon.blit(base_images[2], (0, 0),(0, 0, 16, 16))
-        self.balloon.set_colorkey(self.balloon.get_at((0, 0)), RLEACCEL)
-        self.balloon = self.balloon.convert()
-
         self.image = self.walk[Motion.right_stop]
         self.rect.move_ip(120, 120)        
+
+        Tracker.instance().add_task(Balloon(self))
 
     def keyevent(self):
         keyin = pygame.key.get_pressed()
@@ -233,14 +259,13 @@ class Player(PlayerTask):
             self.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.jumping == 0 and not self.gravity()):
             self.jumping = 1
-        if keyin[K_x] and not self.bullet_flag and self.inochi > 0:
+        if keyin[K_x] and not self.bullet_flag and self.life > 0:
             self.bullet_flag = True
-            self.inochi -= 1
+            self.life -= 1
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletTask(self.rect.left, self.rect.top, way))
         if not keyin[K_UP]:
             self.jumping = 0
-  
 
     def motion(self):
         if self.jumping > 0 and self.jumping < 39:
@@ -253,7 +278,6 @@ class Player(PlayerTask):
 
         if self.gravity_flag:
             self.rect.move_ip(0, 2)
-            
         self.walkcount += 1
 
         if self.walking is False or self.walkcount < 6:
