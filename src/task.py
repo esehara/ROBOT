@@ -132,20 +132,6 @@ class Ground(ScreenTask):
         for y in range(len(self.landscape.wall_grid)):
             for x in range(len(self.landscape.wall_grid[y])):
                 index = self.landscape.wall_grid[y][x]
-<<<<<<< HEAD
-                if index == 99:
-                    index = 0
-                    
-                self.screen_back.blit(self.wall.images[index], (x * 16, y * 16))
-
-        
-    def drawscreen(self):
-        self.screen.blit(self.screen_back, (0, 0))
-        for task in Tracker.instance().get_all_tasks():
-           self.screen.blit(task.image, (task.rect.left, task.rect.top))
-        return self.screen
-
-=======
                 self.image.blit(self.wall.images[index], (x * 16, y * 16))
 
     def act(self):
@@ -251,7 +237,6 @@ class Balloon(PlayerTask):
             self.image.fill(color_red, life_rect)
             yield
 
->>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
 class Player(PlayerTask):
     def __init__(self, filename, filename2, left, top):
         Task.__init__(self)
@@ -267,16 +252,8 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.gravity_flag = True
-<<<<<<< HEAD
-
-        global bullet_flag
-        bullet_flag = False
-
-        self.inochi = 9
-=======
         self.is_pressed_bullet_key = False
         self.life = 9
->>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -315,15 +292,11 @@ class Player(PlayerTask):
         self.walk.update({Motion.left_jump:surface})
 
         self.image = self.walk[Motion.right_stop]
-<<<<<<< HEAD
-        self.rect.move_ip(160,160)
-=======
         self.rect.move_ip(120, 120)
 
         self.is_pressed_bullet_key = False
 
         Tracker.instance().add_task(Balloon(self))
->>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
 
     def keyevent(self):
         global bullet_flag
@@ -340,26 +313,16 @@ class Player(PlayerTask):
             self.clash_wall(-2, 0)
         if ((keyin[K_UP] | keyin[K_z]) and self.jumping == 0 and not self.gravity()):
             self.jumping = 1
-<<<<<<< HEAD
-        if keyin[K_x] and not bullet_flag and self.inochi > 0:
-            bullet_flag = True
-            self.inochi -= 1
-=======
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
->>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
             self.is_pressed_bullet_key = False
         if not keyin[K_UP]:
             self.jumping = 0
-<<<<<<< HEAD
-                    
-=======
 
->>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
     def motion(self):
         if self.jumping > 0 and self.jumping < 39:
             self.jumping += 1
@@ -457,15 +420,8 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         cell_y = self.rect.top / 16
         cell_b = self.rect.bottom / 16
         if (self.landscape.wall_grid[cell_y][cell_x] > 0):
-<<<<<<< HEAD
-            bullet_flag = False
             return True
         elif (self.landscape.wall_grid[cell_b][cell_x]>0):
-            bullet_flag = False
-=======
-            return True
-        elif (self.landscape.wall_grid[cell_b][cell_x]>0):
->>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
             return True
         else:
             return False 

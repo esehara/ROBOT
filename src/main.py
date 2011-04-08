@@ -59,20 +59,6 @@ class Game:
            self.screen.blit(task.image, (task.rect.left, task.rect.top))
         self.counter.update()
 
-<<<<<<< HEAD
-# self.screen.blit(self.player.hukidashi, (self.player.rect.left, self.player.rect.top - 16))
-# tamakazu = pygame.rect
-# tamakazu.left = self.player.rect.left + 3
-# tamakazu.top = self.player.rect.top - 13
-# tamakazu.width = self.player.inochi
-# tamakazu.height = 6
-
-# if self.player.inochi > 0:
-# pygame.draw.rect(self.screen, color_red, Rect(tamakazu.left,tamakazu.top,tamakazu.width,6), 0)
-        ## 320, 240 ==> 640, 480
-        
-=======
->>>>>>> 42b4e64fa8c5ebac8a59c82435983ee336af5152
         tmpSurface = pygame.Surface((320, 240))
         tmpSurface.blit(self.screen, (0, 0))
 
