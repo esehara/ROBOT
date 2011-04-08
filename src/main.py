@@ -44,17 +44,18 @@ class Game:
         self.quit = False
         self.counter = Count()
         self.pause_flag = False
-        self.pause_image = load_image("./img/pause.png",-1)
+        self.pause_image = load_image("./img/pause.png", -1)
         Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", 0, 0))
         Tracker.instance().add_task(SampleBossTask(200, 160))
         Tracker.instance().add_task(Ground())
-        
+        self.is_pressed_pause_key = False
+
     def update(self):
-        Tracker.instance().act_all_tasks()
+        if not self.pause_flag:
+            Tracker.instance().act_all_tasks()
         return 
 
     def draw(self):
-    
         self.screen.fill(color_blue)
         for task in Tracker.instance().get_all_tasks():
            self.screen.blit(task.image, (task.rect.left, task.rect.top))
@@ -63,15 +64,23 @@ class Game:
         tmpSurface = pygame.Surface((320, 240))
         tmpSurface.blit(self.screen, (0, 0))
 
-        if self.pause_flag:
-            tmpSurface = self.convert_to_girl(tmpSurface)
-            tmpSurface.blit(self.pause_image,(70,150))
+#        if self.pause_flag:
+#            tmpSurface = self.convert_to_girl(tmpSurface)
+#            tmpSurface.blit(self.pause_image, (70, 150))
 
         self.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
         pygame.display.flip()
 
     def keyevent(self):
-        pass
+        keyin = pygame.key.get_pressed()
+        if keyin[K_q] and not self.is_pressed_pause_key:
+            self.is_pressed_pause_key = True
+            if self.pause_flag:
+                self.pause_flag = False
+            else:
+                self.pause_flag = True
+        if not keyin[K_q] and self.is_pressed_pause_key:
+            self.is_pressed_pause_key = False
 
     def mainLoop(self):
         while not self.quit:
@@ -80,26 +89,25 @@ class Game:
                     self.quit = True
                 if (event.type == KEYDOWN and event.key == K_ESCAPE):
                     self.quit = True
-                if (event.type == KEYDOWN and event.key == K_q):
-                    self.pause_flag = True
+#                if (event.type == KEYDOWN and event.key == K_q):
+#                    self.pause_flag = True
             
-            if self.pause_flag:
-                self.purseLoop()
-            
+#            if self.pause_flag:
+#                self.pause_loop()
+
             self.keyevent()
             self.update()
             self.draw()
             Tracker.instance().delete_tasks()
             self.clock.tick(60)
 
-    def purseLoop(self):
-       
-        while self.pause_flag:
-            self.draw()
-            for event in pygame.event.get():
-                if (event.type == KEYDOWN and event.key == K_q):
-                    self.pause_flag = False
-            self.clock.tick(60)
+#    def pause_loop(self):
+#        while self.pause_flag:
+#            self.draw()
+#            for event in pygame.event.get():
+#                if (event.type == KEYDOWN and event.key == K_q):
+#                    self.pause_flag = False
+#            self.clock.tick(60)
 
     def titleLoop(self):
         titlecount = 0

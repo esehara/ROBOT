@@ -8,45 +8,6 @@ import json
 
 color_red = 255,0,0
 stage = 0
-
-class Tracker(Singleton):
-    def __init__(self):
-        Singleton.__init__(self)
-        self.bullet_tasks = []
-        self.enemy_tasks = []
-        self.player_tasks = []
-        self.tasks_containers = [
-            self.bullet_tasks,
-            self.enemy_tasks,
-            self.player_tasks]
-
-    def add_task(self, task):
-        if isinstance(task, BulletTask):
-            self.bullet_tasks.append(task)
-        elif isinstance(task, EnemyTask):
-            self.enemy_tasks.append(task)
-        elif isinstance(task, PlayerTask):
-            self.player_tasks.append(task)
-        else:
-            raise TaskNotImplementedError
-        task.generator = task.act()
-
-    def act_all_tasks(self):
-        for task in self.get_all_tasks():
-            ret = task.generator.next()
-            if ret == False:
-                task.is_deleted = True
-
-    def delete_tasks(self):
-        for task_container in self.tasks_containers:
-            for task in task_container:
-                if task.is_deleted == True:
-                    task_container.remove(task)
-
-    def get_all_tasks(self):
-        for task_container in self.tasks_containers:
-            for task in task_container:
-                yield task
                 
 class Way():
     right, left = range(2)
