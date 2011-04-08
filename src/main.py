@@ -89,25 +89,12 @@ class Game:
                     self.quit = True
                 if (event.type == KEYDOWN and event.key == K_ESCAPE):
                     self.quit = True
-#                if (event.type == KEYDOWN and event.key == K_q):
-#                    self.pause_flag = True
-            
-#            if self.pause_flag:
-#                self.pause_loop()
 
             self.keyevent()
             self.update()
             self.draw()
             Tracker.instance().delete_tasks()
             self.clock.tick(60)
-
-#    def pause_loop(self):
-#        while self.pause_flag:
-#            self.draw()
-#            for event in pygame.event.get():
-#                if (event.type == KEYDOWN and event.key == K_q):
-#                    self.pause_flag = False
-#            self.clock.tick(60)
 
     def titleLoop(self):
         titlecount = 0
