@@ -112,6 +112,9 @@ class EnemyTask(Task):
 class PlayerTask(Task):
     pass
 
+class PlayerBulletTask(Task):
+    pass
+
 class TaskNotImplementedError():
     pass
 
@@ -139,24 +142,28 @@ class Tracker(Singleton):
     def __init__(self):
         Singleton.__init__(self)
         self.screen_tasks = []
-        self.bullet_tasks = []
         self.enemy_tasks = []
         self.player_tasks = []
+        self.bullet_tasks = []
+        self.player_bullet_tasks = []
         self.tasks_containers = [
             self.screen_tasks,
-            self.bullet_tasks,
             self.enemy_tasks,
-            self.player_tasks]
+            self.player_tasks,
+            self.bullet_tasks,
+            self.player_bullet_tasks]
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
             self.screen_tasks.append(task)
-        elif isinstance(task, BulletTask):
-            self.bullet_tasks.append(task)
         elif isinstance(task, EnemyTask):
             self.enemy_tasks.append(task)
         elif isinstance(task, PlayerTask):
             self.player_tasks.append(task)
+        elif isinstance(task, BulletTask):
+            self.bullet_tasks.append(task)
+        elif isinstance(task, PlayerBulletTask):
+            self.player_bullet_tasks.append(task)
         else:
             raise TaskNotImplementedError
         task.generator = task.act()
@@ -177,6 +184,28 @@ class Tracker(Singleton):
         for task_container in self.tasks_containers:
             for task in task_container:
                 yield task
+
+    def detect_collision(self, target_parent, actor_task):
+        if issubclass(target_parent, ScreenTask):
+            target_container = self.screen_tasks
+        elif issubclass(target_parent, EnemyTask):
+            target_container = self.enemy_tasks
+        elif issubclass(target_parent, PlayerTask):
+            target_container = self.player_tasks
+        elif issubclass(target_parent, BulletTask):
+            target_container = self.bullet_tasks
+        elif issubclass(target_parent, PlayerBulletTask):
+            target_container = self.player_bullet_tasks
+        else:
+            raise TaskNotImplementedError
+
+        is_collision = False
+        for task in target_container:
+            horizontal_collision = (task.rect.left <= (actor_task.rect.left + actor_task.rect.w)) & (actor_task.rect.left <= (task.rect.left + task.rect.w))
+            vertical_collision = (task.rect.top <= (actor_task.rect.top + actor_task.rect.w)) & (actor_task.rect.top <= (task.rect.top + task.rect.h))
+            if horizontal_collision & vertical_collision:
+                is_collision = True
+        return is_collision
 
 class Balloon(PlayerTask):
     def __init__(self, player_task):
@@ -288,7 +317,7 @@ class Player(PlayerTask):
             self.is_pressed_bullet_key = True
             self.life -= 1
             way = Way.right if self.way == Way.right else Way.left
-            Tracker.instance().add_task(PlayerBulletTask(self.rect.left, self.rect.top, way))
+            Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
             self.is_pressed_bullet_key = False
         if not keyin[K_UP]:
@@ -357,12 +386,12 @@ class Player(PlayerTask):
         elif ((self.landscape.wall_grid[cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
             return False
 
-class PlayerBulletTask(BulletTask):
+class PlayerBulletNormalTask(PlayerBulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
 
         surface = pygame.Surface((8, 8))
-        self.image = load_image("./img/tama.png",-1)
+        self.image = load_image("./img/tama.png", -1)
         surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
         surface.convert()
 
@@ -375,11 +404,11 @@ class PlayerBulletTask(BulletTask):
     def act(self):
         while True:
             if self.way == Way.right:
-                self.rect.left += 8
+                self.rect.left += 4
                 if self.clash_wall():
                     yield False
             elif self.way == Way.left:
-                self.rect.left -= 8
+                self.rect.left -= 4
                 if self.clash_wall():
                     yield False
             yield True
@@ -436,11 +465,15 @@ class SampleBossTask(EnemyTask):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    yield False
                 yield True
 
 
