@@ -131,12 +131,10 @@ class Game:
 
     def gameOver(self):
         gameoverimage = load_image('./img/gameover.png', -1)
-        startimage = load_image('./img/pushstart.png',-1)
         
         while True:
             game.screen.fill(color_blue)
             game.screen.blit(gameoverimage, (10, 50))
-            game.screen.blit(startimage, (20,200))
 
             tmpSurface = pygame.Surface((320, 240))
             tmpSurface.blit(game.screen, (0, 0))
