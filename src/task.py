@@ -5,6 +5,7 @@ from main import *
 from single import *
 import random
 import json
+import math
 
 color_red = 255,0,0
 max_jumping_frame = 35
@@ -461,7 +462,6 @@ class Player(PlayerTask):
                 else:
                     return False
             else:
-                print landscape.wall_grid[cell_top][cell_left], landscape.wall_grid[cell_bottom][cell_left]
                 if landscape.wall_grid[cell_bottom][cell_left] == 0:
                     return True
                 else:
@@ -595,13 +595,14 @@ class SampleBossTask(EnemyTask):
                 self.rate = 0
                 self.walk_flag = True
                 self.image = self.images[self.walk_flag]
-           
+
             for i in range(30):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
+                    Tracker.instance().add_task(Boss2Task(200, 200))
                     yield False
                 yield True
             for i in range(30):
@@ -610,7 +611,39 @@ class SampleBossTask(EnemyTask):
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
+                    Tracker.instance().add_task(Boss2Task(200, 200))
                     yield False
                 yield True
+
+class Boss2Task(EnemyTask):
+    def __init__(self, left, top):
+        Task.__init__(self)
+        self.image = load_image("./img/gorem.png", -1)
+        self.images = []
+        for i in range(2):
+            self.images.append(pygame.Surface((16, 32)))
+            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
+            self.images[i] = self.images[i].convert()
+
+        self.image = self.images[0]
+        self.counter = 0
+
+        self.base_left = left
+        self.base_top = top
+        self.rect.left = left
+        self.rect.top = top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+
+    def act(self):
+        while True:
+            if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                Tracker.instance().increment_stage()
+                yield False
+            self.counter += 1
+            self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
+            self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
+            yield True
 
 
