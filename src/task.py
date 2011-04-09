@@ -1186,7 +1186,11 @@ class Boss7Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task_next_frame(Boss8Task(160, 120))
+=======
+                    Tracker.instance().add_task_next_frame(Boss8Task(100, 100))
+>>>>>>> 3e4de5d67894fdf54cf516cca28f94e37d894a57
                     yield False
                 yield True
             for i in range(30):
@@ -1199,7 +1203,11 @@ class Boss7Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task_next_frame(Boss8Task(160, 120))
+=======
+                    Tracker.instance().add_task_next_frame(Boss8Task(100, 100))
+>>>>>>> 3e4de5d67894fdf54cf516cca28f94e37d894a57
                     yield False
                 yield True
 
