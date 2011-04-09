@@ -109,6 +109,7 @@ class Tracker(Singleton):
         self.load_stage()
 
     def load_stage(self):
+        print("loading stage: %s" % self.stage_number)
         self.background = Background("./img/background0" + str(self.stage_number) + ".png")
         self.landscape = Landscape("./data/background0" + str(self.stage_number) + ".json", "./data/wall0" + str(self.stage_number) + ".json")
         self.stage = Stage("./data/stage0" + str(self.stage_number) + ".json")
@@ -120,14 +121,19 @@ class Tracker(Singleton):
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
+            print("add ScreenTask")
             self.screen_tasks.append(task)
         elif isinstance(task, EnemyTask):
+            print("add EnemyTask")
             self.enemy_tasks.append(task)
         elif isinstance(task, PlayerTask):
+            print("add PlayerTask")
             self.player_tasks.append(task)
         elif isinstance(task, BulletTask):
+            print("add BulletTask")
             self.bullet_tasks.append(task)
         elif isinstance(task, PlayerBulletTask):
+            print("add PlayerBulletTask")
             self.player_bullet_tasks.append(task)
         else:
             raise TaskNotImplementedError
