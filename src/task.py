@@ -119,6 +119,8 @@ class Tracker(Singleton):
         self.stage_number += 1
         self.load_stage()
         self.ground_task.load_images()
+        self.player_task.rect.left = self.stage.data["x"]
+        self.player_task.rect.top = self.stage.data["y"]
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
