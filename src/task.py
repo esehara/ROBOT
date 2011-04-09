@@ -618,6 +618,48 @@ class BossRingTask(BulletTask):
                 yield False
             yield True
 
+class SinBulletTask(BulletTask):
+    def __init__(self, left, top):
+        Task.__init__(self)
+        self.image = pygame.Surface((2, 2))
+        self.base_top = top
+        self.rect.left = left
+        self.rect.top = top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+        self.counter = 0
+
+    def act(self):
+        while True:
+            self.counter += 1
+            self.rect.left -= 2
+            self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 4
+            yield True
+
+class UmbrellaBulletTask(BulletTask):
+    def __init__(self, left, top):
+        Task.__init__(self)
+        self.image = load_image("./img/mons_stone.png", -1)
+        self.images = []
+        for i in range(2):
+            self.images.append(pygame.Surface((32, 64)))
+            self.images[i].blit(self.image, (0, 0), (i*32, 0, 32, 64))
+            self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
+            self.images[i] = self.images[i].convert()
+        self.base_top = top
+        self.rect.left = left
+        self.rect.top = top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+        self.counter = 0
+
+    def act(self):
+        while True:
+            self.counter += 1
+            self.rect.left -= 2
+            self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 4
+            yield True
+
 class Boss0Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
@@ -655,6 +697,8 @@ class Boss0Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
+            if random.randrange(10) == 0:
+                Tracker.instance().add_task(SinBulletTask(self.rect.left, self.rect.top))
             yield True
 
 class Boss1Task(EnemyTask):
