@@ -326,12 +326,12 @@ class Player(PlayerTask):
         if keyin[K_RIGHT]:
             self.way = Way.right
             self.walking = True
-            if self.is_collision_wall(2, 0):
+            if self.is_collision_side_wall(2):
                 self.rect.left += 2
         if keyin[K_LEFT]:
             self.way = Way.left
             self.walking = True
-            if self.is_collision_wall(-2, 0):
+            if self.is_collision_side_wall(-2):
                 self.rect.left -= 2
         if (keyin[K_UP] or keyin[K_z]) and not self.is_jump_upping and self.is_on_flooring():
             self.is_jump_upping = True
@@ -385,41 +385,58 @@ class Player(PlayerTask):
     def jump_up(self):
         self.update_jump_status()
         jump_height = self.calculate_jump_height()
-        cell_top = int(self.rect.top + jump_height) / 16
-        cell_left = self.rect.left / 16
-        cell_right = (self.rect.right / 16) - 2
+        cell_top = int(int(self.rect.top + jump_height) / 16)
+        cell_left = int(self.rect.left / 16)
+        cell_right = int(self.rect.right / 16) + 1
+        is_right = True if self.rect.right % 16 else False
 
         landscape = Tracker.instance().landscape
-        if not ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)):
-            self.rect.top -= jump_height
+        if is_right:
+            if (landscape.wall_grid[cell_top][cell_left] == 0) and (landscape.wall_grid[cell_top][cell_right] == 0):
+                self.rect.top -= jump_height
+        else:
+            if landscape.wall_grid[cell_top][cell_left] == 0:
+                self.rect.top -= jump_height
 
     def jump_down(self):
         self.update_jump_status()
         jump_height = self.calculate_jump_height()
-        cell_top = int(self.rect.top + jump_height) / 16
-        next_cell_bottom = int(self.rect.bottom + jump_height) / 16 - 1
-        cell_left = self.rect.left / 16
-        cell_right = (self.rect.right / 16) - 2
+        cell_top = int(int(self.rect.top + jump_height) / 16)
+        next_cell_bottom = int(int(self.rect.bottom + jump_height) / 16) + 1
+        cell_left = int(self.rect.left / 16)
+        cell_right = int(self.rect.right / 16) + 1
+        is_right = True if self.rect.right % 16 else False
 
         landscape = Tracker.instance().landscape
-        is_collision_top = (landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)
-        is_collision_next_bottom = (landscape.wall_grid[next_cell_bottom][cell_left] > 0) or (landscape.wall_grid[next_cell_bottom][cell_right] > 0)
+        if is_right:
+            is_collision_top = (landscape.wall_grid[cell_top][cell_left] > 0) and (landscape.wall_grid[cell_top][cell_right] > 0)
+            is_collision_next_bottom = (landscape.wall_grid[next_cell_bottom][cell_left] > 0) and (landscape.wall_grid[next_cell_bottom][cell_right] > 0)
+        else:
+            is_collision_top = landscape.wall_grid[cell_top][cell_left] > 0
+            is_collision_next_bottom = landscape.wall_grid[next_cell_bottom][cell_left] > 0
         if not is_collision_top:
             self.rect.top += jump_height
             if is_collision_next_bottom:
-                self.rect.top -= (self.rect.top + 1) - (int((self.rect.top + 1) / 16) * 16)
+                self.rect.top = (next_cell_bottom - 1) * 16
 
     def is_head_butt(self):
         jump_height = self.calculate_jump_height()
-        cell_top = int(self.rect.top - jump_height) / 16
-        cell_left = self.rect.left / 16
-        cell_right = (self.rect.right / 16) - 2
+        cell_top = int(int(self.rect.top - jump_height) / 16)
+        cell_left = int(self.rect.left / 16)
+        cell_right = int(self.rect.right / 16) + 1
 
         landscape = Tracker.instance().landscape
-        if ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)):
-            return True
+        is_right = True if self.rect.right % 16 else False
+        if is_right:
+            if (landscape.wall_grid[cell_top][cell_left] == 0) and (landscape.wall_grid[cell_top][cell_right] == 0):
+                return False
+            else:
+                return True
         else:
-            return False
+            if landscape.wall_grid[cell_top][cell_left] == 0:
+                return False
+            else:
+                return True
 
     def calculate_jump_height(self):
         height = self.last_jump_height - (self.base_x ** 2) / jumping_division
@@ -435,34 +452,56 @@ class Player(PlayerTask):
         self.is_jump_upping = False
         self.jumping_count = 0
 
-    def is_collision_wall(self, x, y):
-        cell_top = int(self.rect.top + y) / 16
-        cell_left = (self.rect.left + x) / 16
-        cell_bottom = ((self.rect.bottom + y) / 16 - 1)
-        cell_right = ((self.rect.right + x) / 16) - 2
+    def is_collision_side_wall(self, x):
+        cell_top = int(self.rect.top / 16)
+        cell_left = int((self.rect.left + x) / 16)
+        cell_bottom = int((self.rect.bottom - 1) / 16) + 1
+        cell_right = int((self.rect.right + x) / 16) + 1
+        is_top = True if self.rect.top % 16 else False
 
         landscape = Tracker.instance().landscape
         if x < 0:
-            if not ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_bottom][cell_left] > 0)):
-                return True
+            if is_top:
+                if (landscape.wall_grid[cell_top][cell_left] == 0) and (landscape.wall_grid[cell_bottom][cell_left] == 0):
+                    return True
+                else:
+                    return False
+            else:
+                print landscape.wall_grid[cell_top][cell_left], landscape.wall_grid[cell_bottom][cell_left]
+                if landscape.wall_grid[cell_bottom][cell_left] == 0:
+                    return True
+                else:
+                    return False
         if x > 0:
-            if not ((landscape.wall_grid[cell_top][cell_right] > 0) or (landscape.wall_grid[cell_bottom][cell_right] > 0)):
-                return True
-        if y < 0:
-            if not ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)):
-                return True
+            if is_top:
+                if (landscape.wall_grid[cell_top][cell_right] == 0) and (landscape.wall_grid[cell_bottom][cell_right] == 0):
+                    return True
+                else:
+                    return False
+            else:
+                if landscape.wall_grid[cell_bottom][cell_right] == 0:
+                    return True
+                else:
+                    return False
         return False
 
     def is_on_flooring(self):
-        cell_left = self.rect.left / 16
-        cell_bottom = int(self.rect.top + 18) / 16
-        cell_right = (self.rect.right / 16) - 2
+        cell_bottom = int((self.rect.top + 16) / 16)
+        cell_left = int(self.rect.left / 16)
+        cell_right = int((self.rect.right / 16)) + 1
+        is_right = True if self.rect.right % 16 else False
 
         landscape = Tracker.instance().landscape
-        if not ((landscape.wall_grid[cell_bottom][cell_left] > 0) or (landscape.wall_grid[cell_bottom][cell_right] > 0)):
-            return False
-        elif ((landscape.wall_grid[cell_bottom][cell_left] > 0) or (landscape.wall_grid[cell_bottom][cell_right] > 0)):
-            return True
+        if is_right:
+            if (landscape.wall_grid[cell_bottom][cell_left] == 0) and (landscape.wall_grid[cell_bottom][cell_right] == 0):
+                return False
+            else:
+                return True
+        else:
+            if landscape.wall_grid[cell_bottom][cell_left] == 0:
+                return False
+            else:
+                return True
 
 class PlayerBulletNormalTask(PlayerBulletTask):
     def __init__(self, left, top, way):
