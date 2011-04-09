@@ -220,7 +220,7 @@ class CountTask(ScreenTask):
             self.image.fill((0, 0, 0))
             self.counter += 1
             draw_count = str(self.counter)
-            left = (3 - len(draw_count)) * 16
+            left = (4 - len(draw_count)) * 16
             i = 0
             for digit in draw_count:
                 self.image.blit(self.base_images[int(digit)], (left + i * 16, 0))
