@@ -145,10 +145,12 @@ class Tracker(Singleton):
         self.player_bullet_tasks = []
 
     def delete_bullet_tasks(self):
-        self.bullet_tasks = []
+        for task in self.bullet_tasks:
+            task.is_deleted = True
 
     def delete_player_bullet_tasks(self):
-        self.player_bullet_tasks = []
+        for task in self.player_bullet_tasks:
+            task.is_deleted = True
 
     def act_all_tasks(self):
         for task in self.get_all_tasks():
@@ -593,6 +595,29 @@ class SampleBossBulletTask(BulletTask):
                     yield False
             yield True
 
+<<<<<<< HEAD
+=======
+class BossRingTask(BulletTask):
+    def __init__(self, boss_task):
+        Task.__init__(self)
+        self.image = pygame.Surface((2, 2))
+        self.rect.left = boss_task.rect.left
+        self.rect.top = boss_task.rect.top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+        self.boss_task = boss_task
+        self.counter = 0
+
+    def act(self):
+        while True:
+            self.counter += 1
+            self.rect.left = self.boss_task.rect.left + 25 + math.sin(self.counter / math.pi / 6) * 30
+            self.rect.top = self.boss_task.rect.top + math.cos(self.counter / math.pi / 6) * 4
+            if self.boss_task.is_deleted:
+                yield False
+            yield True
+
+>>>>>>> f1d8bda77ba6e2b75b1add42cfe871cc57bb1401
 class Boss0Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
@@ -618,11 +643,13 @@ class Boss0Task(EnemyTask):
         while True:
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
                 Tracker.instance().increment_stage()
+                Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().add_task(Boss1Task(150, 150))
                 yield False
             if Tracker.instance().detect_collision(PlayerTask, self):
                 Tracker.instance().increment_stage()
                 Tracker.instance().add_task(Boss1Task(150, 150))
+                Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().player_task.life -= 1
                 yield False
             self.counter += 1
