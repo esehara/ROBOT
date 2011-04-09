@@ -379,10 +379,15 @@ class Player(PlayerTask):
         cell_top = int(int(self.rect.top + jump_height) / 16)
         cell_left = int(self.rect.left / 16)
         cell_right = int(self.rect.right / 16) + 1
+        is_right = True if self.rect.right % 16 else False
 
         landscape = Tracker.instance().landscape
-        if not ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)):
-            self.rect.top -= jump_height
+        if is_right:
+            if (landscape.wall_grid[cell_top][cell_left] == 0) and (landscape.wall_grid[cell_top][cell_right] == 0):
+                self.rect.top -= jump_height
+        else:
+            if landscape.wall_grid[cell_top][cell_left] == 0:
+                self.rect.top -= jump_height
 
     def jump_down(self):
         self.update_jump_status()
@@ -391,10 +396,17 @@ class Player(PlayerTask):
         next_cell_bottom = int(int(self.rect.bottom + jump_height) / 16) + 1
         cell_left = int(self.rect.left / 16)
         cell_right = int(self.rect.right / 16) + 1
+        is_right = True if self.rect.right % 16 else False
 
         landscape = Tracker.instance().landscape
-        is_collision_top = (landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)
-        is_collision_next_bottom = (landscape.wall_grid[next_cell_bottom][cell_left] > 0) or (landscape.wall_grid[next_cell_bottom][cell_right] > 0)
+        if is_right:
+            is_collision_top = (landscape.wall_grid[cell_top][cell_left] > 0) and (landscape.wall_grid[cell_top][cell_right] > 0)
+        else:
+            is_collision_top = landscape.wall_grid[cell_top][cell_left] > 0
+        if is_right:
+            is_collision_next_bottom = (landscape.wall_grid[next_cell_bottom][cell_left] > 0) and (landscape.wall_grid[next_cell_bottom][cell_right] > 0)
+        else:
+            is_collision_next_bottom = landscape.wall_grid[next_cell_bottom][cell_left] > 0
         if not is_collision_top:
             self.rect.top += jump_height
             if is_collision_next_bottom:
