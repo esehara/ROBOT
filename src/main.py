@@ -22,8 +22,10 @@ class Game:
         self.pause_image = load_image("./img/pause.png", -1)
         x = Tracker.instance().stage.data["x"]
         y = Tracker.instance().stage.data["y"]
-        Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", x, y))
-        Tracker.instance().add_task(SampleBossTask(200, 160))
+        player_task = Player("./img/robot.png", "./img/robojump.png", x, y)
+        Tracker.instance().add_task(player_task)
+        Tracker.instance().player_task = player_task
+        Tracker.instance().add_task(Boss0Task(200, 160))
         ground_task = GroundTask()
         Tracker.instance().add_task(ground_task)
         Tracker.instance().ground_task = ground_task
@@ -127,6 +129,30 @@ class Game:
             self.clock.tick(60)
         return
 
+    def gameOver(self):
+        gameoverimage = load_image('./img/gameover.png', -1)
+        startimage = load_image('./img/pushstart.png',-1)
+        
+        while True:
+            game.screen.fill(color_blue)
+            game.screen.blit(gameoverimage, (10, 50))
+            game.screen.blit(startimage, (20,200))
+
+            tmpSurface = pygame.Surface((320, 240))
+            tmpSurface.blit(game.screen, (0, 0))
+            game.screen.blit(pygame.transform.scale(tmpSurface, (640, 480)), (0, 0)) 
+            pygame.display.flip()
+            self.clock.tick(60)
+            for event in pygame.event.get():
+                if (event.type == KEYDOWN and event.key == K_SPACE):
+                    return 
+                if event.type == QUIT:
+                    self.quit = True
+                    return
+                if (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    self.quit = True
+                    return
+
     def convert_to_girl(self, surf):
         width, height = surf.get_size()
         for x in range(width):
@@ -141,4 +167,10 @@ def main():
     global game
     game = Game()
     game.titleLoop()
+    game.mainLoop()
+
+def gameover():
+    global game
+    game = Game()
+    game.gameOver()
     game.mainLoop()
