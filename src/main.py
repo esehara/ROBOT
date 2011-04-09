@@ -98,7 +98,8 @@ class Game:
 
         titleimage = load_image('./img/title.png', -1)
         startimage = load_image('./img/pushstart.png',-1)
-        
+        subtitleimage = load_image('./img/subtitle.png',-1)
+
         typed_start = False
         
         while not typed_start:
@@ -112,6 +113,7 @@ class Game:
 
             game.screen.fill(color_blue)
             game.screen.blit(titleimage, (60, 50))
+            game.screen.blit(subtitleimage, (70, 110))
             if start_draw_flag:
                 game.screen.blit(startimage, (20,200))
 
