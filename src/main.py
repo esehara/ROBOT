@@ -173,4 +173,3 @@ def gameover():
     global game
     game = Game()
     game.gameOver()
-    game.mainLoop()

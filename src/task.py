@@ -137,6 +137,13 @@ class Tracker(Singleton):
             raise TaskNotImplementedError
         task.generator = task.act()
 
+    def delete_all_tasks(self):
+        self.screen_taksk = []
+        self.enemy_tasks = []
+        self.player_tasks = []
+        self.bullet_tasks = []
+        self.player_bullet_tasks = []
+
     def delete_bullet_tasks(self):
         self.bullet_tasks = []
 
@@ -145,9 +152,13 @@ class Tracker(Singleton):
 
     def act_all_tasks(self):
         for task in self.get_all_tasks():
-            ret = task.generator.next()
-            if ret == False:
-                task.is_deleted = True
+            try:
+                ret = task.generator.next()
+                if ret == False:
+                    task.is_deleted = True
+            except StopIteration, e:
+                for task in self.get_all_tasks():
+                    task.is_deleted = True
 
     def delete_tasks(self):
         for task_container in self.tasks_containers:
@@ -385,17 +396,20 @@ class Player(PlayerTask):
             self.walkcount = 0
 
     def act(self):
-        while True:
+        gameover = False
+        while True and not gameover:
             self.keyevent()
             self.motion()
-            if self.life == 0:
-                import main,sys
-                main.gameover()
-                sys.exit(0)
+            if self.life <= 0:
+                gameover = True
             if Tracker.instance().detect_collision(BulletTask, self, True):
                 self.life -= 1
                 print('life is %d' % self.life)
             yield True
+        if gameover:
+            import main
+            Tracker.instance().delete_all_tasks()
+            main.gameover()
 
     def jump_up(self):
         self.update_jump_status()
