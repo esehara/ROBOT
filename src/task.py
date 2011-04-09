@@ -287,7 +287,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.is_pressed_bullet_key = False
-        self.life = 9
+        self.life = 99
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
