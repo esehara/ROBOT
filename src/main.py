@@ -90,6 +90,7 @@ class Game:
             self.update()
             self.draw()
             Tracker.instance().delete_tasks()
+            Tracker.instance().add_all_reserved_tasks()
             self.clock.tick(60)
 
     def titleLoop(self):

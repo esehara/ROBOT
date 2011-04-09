@@ -115,6 +115,7 @@ class Tracker(Singleton):
         self.player_task = None
         self.ground_task = None
         self.attacked_time = 0
+        self.reserved_tasks = []
 
     def load_stage(self):
         self.background = Background("./img/background0" + str(self.stage_number) + ".png")
@@ -127,6 +128,14 @@ class Tracker(Singleton):
         self.ground_task.load_images()
         self.player_task.rect.left = self.stage.data["x"]
         self.player_task.rect.top = self.stage.data["y"]
+
+    def add_task_next_frame(self, task):
+        self.reserved_tasks.append(task)
+
+    def add_all_reserved_tasks(self):
+        for task in self.reserved_tasks:
+            self.add_task(task)
+        self.reserved_tasks = []
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
@@ -154,10 +163,12 @@ class Tracker(Singleton):
         self.clear_tasks = []
 
     def delete_bullet_tasks(self):
+#        print("delete bullet")
         for task in self.bullet_tasks:
             task.is_deleted = True
 
     def delete_player_bullet_tasks(self):
+#        print("delete player bullet")
         for task in self.player_bullet_tasks:
             task.is_deleted = True
 
@@ -233,6 +244,16 @@ class CountTask(ScreenTask):
                 self.image.blit(self.base_images[int(digit)], (left + i * 16, 0))
                 i += 1
             Tracker.instance().attacked_time = self.counter
+            yield True
+
+class ClearLogoTask(ClearTask):
+    def __init__(self):
+        Task.__init__(self)
+        self.image = load_image("./img/yourscore.png", -1)
+        self.rect = pygame.Rect(80, 80, self.image.get_rect().width, self.image.get_rect().height)
+
+    def act(self):
+        while True:
             yield True
 
 class ClearScoreTask(ClearTask):
@@ -331,7 +352,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.is_pressed_bullet_key = False
-        self.life = 99
+        self.life = 9
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -402,12 +423,11 @@ class Player(PlayerTask):
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
+#            print('life is %d' % self.life)
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
             self.is_pressed_bullet_key = False
-        if keyin[K_l]:
-            self.life += 1
 
     def motion(self):
         if self.is_jump_upping:
@@ -764,11 +784,11 @@ class Boss0Task(EnemyTask):
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
                 Tracker.instance().increment_stage()
                 Tracker.instance().delete_player_bullet_tasks()
-                Tracker.instance().add_task(Boss1Task(130, 180))
+                Tracker.instance().add_task_next_frame(Boss1Task(130, 180))
                 yield False
             if Tracker.instance().detect_collision(PlayerTask, self):
                 Tracker.instance().increment_stage()
-                Tracker.instance().add_task(Boss1Task(130, 180))
+                Tracker.instance().add_task_next_frame(Boss1Task(130, 180))
                 Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().player_task.life -= 1
                 yield False
@@ -820,11 +840,13 @@ class Boss1Task(EnemyTask):
                     self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss2Task(50, 50))
+                    Tracker.instance().add_task_next_frame(Boss2Task(50, 50))
                     yield False
                 yield True
             for i in range(60):
@@ -832,11 +854,13 @@ class Boss1Task(EnemyTask):
                     self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss2Task(50, 50))
+                    Tracker.instance().add_task_next_frame(Boss2Task(50, 50))
                     yield False
                 yield True
 
@@ -874,22 +898,26 @@ class Boss2Task(EnemyTask):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss3Task(200, 150))
+                    Tracker.instance().add_task_next_frame(Boss3Task(200, 150))
                     yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss3Task(200, 150))
+                    Tracker.instance().add_task_next_frame(Boss3Task(200, 150))
                     yield False
                 yield True
             
@@ -926,22 +954,26 @@ class Boss3Task(EnemyTask):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss4Task(250, 100))
+                    Tracker.instance().add_task_next_frame(Boss4Task(250, 100))
                     yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss4Task(250, 100))
+                    Tracker.instance().add_task_next_frame(Boss4Task(250, 100))
                     yield False
                 yield True
 
@@ -978,22 +1010,34 @@ class Boss4Task(EnemyTask):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task(Boss5Task(200,  150))
+=======
+                    Tracker.instance().add_task_next_frame(Boss5Task(200, 200))
+>>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task(Boss5Task(200, 150))
+=======
+                    Tracker.instance().add_task_next_frame(Boss5Task(200, 200))
+>>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
 
@@ -1030,22 +1074,34 @@ class Boss5Task(EnemyTask):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task(Boss6Task(200, 100))
+=======
+                    Tracker.instance().add_task_next_frame(Boss6Task(200, 200))
+>>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task(Boss6Task(200, 100))
+=======
+                    Tracker.instance().add_task_next_frame(Boss6Task(200, 200))
+>>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
 
@@ -1083,22 +1139,26 @@ class Boss6Task(EnemyTask):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss7Task(200, 200))
+                    Tracker.instance().add_task_next_frame(Boss7Task(200, 200))
                     yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss7Task(200, 200))
+                    Tracker.instance().add_task_next_frame(Boss7Task(200, 200))
                     yield False
                 yield True
 
@@ -1136,22 +1196,34 @@ class Boss7Task(EnemyTask):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task(Boss8Task(100, 100))
+=======
+                    Tracker.instance().add_task_next_frame(Boss8Task(160, 120))
+>>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                    Tracker.instance().player_task.life -= 1
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
+<<<<<<< HEAD
                     Tracker.instance().add_task(Boss8Task(100, 100))
+=======
+                    Tracker.instance().add_task_next_frame(Boss8Task(160, 120))
+>>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
 
@@ -1167,7 +1239,8 @@ class Boss8Task(EnemyTask):
         self.images[0] = self.images[0].convert()
 
         self.image = self.images[0]
-        self.counter = 0
+        self.counter = 135
+        self.is_right = True
 
         self.base_left = left
         self.base_top = top
@@ -1179,13 +1252,24 @@ class Boss8Task(EnemyTask):
     def act(self):
         while True:
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                Tracker.instance().add_task(ClearLogoTask())
                 Tracker.instance().add_task(ClearScoreTask())
                 Tracker.instance().player_task.is_clear = True
                 yield False
-            self.counter += 1
-            self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
-            self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-            # last
+            if self.is_right:
+                self.counter += 1
+                if self.counter > 225:
+                    self.is_right = False
+            else:
+                self.counter -= 1
+                if self.counter < 135:
+                    self.is_right = True
+            self.rect.left = self.base_left + math.sin(self.counter / math.pi / 10) * 60
+            self.rect.top = self.base_top + math.cos(self.counter / math.pi / 10) * 60
+            if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                Tracker.instance().player_task.life -= 1
+            if random.randrange(10) == 0:
+                Tracker.instance().add_task(SuperBulletTask(self))
             yield True
 
 
