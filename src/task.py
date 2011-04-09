@@ -621,7 +621,6 @@ class SampleBossTask(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(SampleBossTask(200, 160))
                     Tracker.instance().add_task(Boss2Task(200, 200))
                     yield False
                 yield True
