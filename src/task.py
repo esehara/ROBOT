@@ -350,7 +350,7 @@ class Player(PlayerTask):
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
-            print('life is %d' % self.life)
+            print('[Player.keyevent] life is %d' % self.life)
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
@@ -394,7 +394,7 @@ class Player(PlayerTask):
                 sys.exit(0)
             if Tracker.instance().detect_collision(BulletTask, self, True):
                 self.life -= 1
-                print('life is %d' % self.life)
+                print('[Player.act] life is %d' % self.life)
             yield True
 
     def jump_up(self):
