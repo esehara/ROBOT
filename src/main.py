@@ -22,8 +22,10 @@ class Game:
         self.pause_image = load_image("./img/pause.png", -1)
         x = Tracker.instance().stage.data["x"]
         y = Tracker.instance().stage.data["y"]
-        Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", x, y))
-        Tracker.instance().add_task(SampleBossTask(200, 160))
+        player_task = Player("./img/robot.png", "./img/robojump.png", x, y)
+        Tracker.instance().add_task(player_task)
+        Tracker.instance().player_task = player_task
+        Tracker.instance().add_task(Boss0Task(200, 160))
         ground_task = GroundTask()
         Tracker.instance().add_task(ground_task)
         Tracker.instance().ground_task = ground_task
@@ -39,8 +41,9 @@ class Game:
             surface = surface.convert()
             surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
             self.base_images.append(surface)
-   
-        for line in open('../data/highscore.dat','r'):
+  
+        import os 
+        for line in open(os.path.join(os.path.dirname(__file__), '../data/highscore.dat'),'r'):
             temp = line[:-1].split(':')
             self.highscore = temp[0]
             self.highstage = temp[1]
