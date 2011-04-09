@@ -139,9 +139,11 @@ class Tracker(Singleton):
         task.generator = task.act()
 
     def delete_bullet_tasks(self):
+        print("delete bullet")
         self.bullet_tasks = []
 
     def delete_player_bullet_tasks(self):
+        print("delete player bullet")
         self.player_bullet_tasks = []
 
     def act_all_tasks(self):
