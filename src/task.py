@@ -1016,11 +1016,7 @@ class Boss4Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-<<<<<<< HEAD
-                    Tracker.instance().add_task(Boss5Task(200,  150))
-=======
-                    Tracker.instance().add_task_next_frame(Boss5Task(200, 200))
->>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
+                    Tracker.instance().add_task_next_frame(Boss5Task(200, 150))
                     yield False
                 yield True
             for i in range(30):
@@ -1033,11 +1029,7 @@ class Boss4Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-<<<<<<< HEAD
-                    Tracker.instance().add_task(Boss5Task(200, 150))
-=======
-                    Tracker.instance().add_task_next_frame(Boss5Task(200, 200))
->>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
+                    Tracker.instance().add_task_next_frame(Boss5Task(200, 150))
                     yield False
                 yield True
 
@@ -1080,11 +1072,7 @@ class Boss5Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-<<<<<<< HEAD
-                    Tracker.instance().add_task(Boss6Task(200, 100))
-=======
-                    Tracker.instance().add_task_next_frame(Boss6Task(200, 200))
->>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
+                    Tracker.instance().add_task_next_frame(Boss6Task(200, 100))
                     yield False
                 yield True
             for i in range(30):
@@ -1097,11 +1085,7 @@ class Boss5Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-<<<<<<< HEAD
-                    Tracker.instance().add_task(Boss6Task(200, 100))
-=======
-                    Tracker.instance().add_task_next_frame(Boss6Task(200, 200))
->>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
+                    Tracker.instance().add_task_next_frame(Boss6Task(200, 100))
                     yield False
                 yield True
 
@@ -1202,11 +1186,7 @@ class Boss7Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-<<<<<<< HEAD
-                    Tracker.instance().add_task(Boss8Task(100, 100))
-=======
                     Tracker.instance().add_task_next_frame(Boss8Task(160, 120))
->>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
             for i in range(30):
@@ -1219,11 +1199,7 @@ class Boss7Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-<<<<<<< HEAD
-                    Tracker.instance().add_task(Boss8Task(100, 100))
-=======
                     Tracker.instance().add_task_next_frame(Boss8Task(160, 120))
->>>>>>> b9cbd911c9c81ff235f1cb01d63965e11e54a693
                     yield False
                 yield True
 
