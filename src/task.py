@@ -72,6 +72,9 @@ class Task():
     def act(self):
         raise NotImplementedError
 
+class ClearTask(Task):
+    pass
+
 class BulletTask(Task):
     pass
 
@@ -98,17 +101,20 @@ class Tracker(Singleton):
         self.player_tasks = []
         self.bullet_tasks = []
         self.player_bullet_tasks = []
+        self.clear_tasks = []
         self.tasks_containers = [
             self.screen_tasks,
             self.enemy_tasks,
             self.player_tasks,
             self.bullet_tasks,
-            self.player_bullet_tasks]
+            self.player_bullet_tasks,
+            self.clear_tasks]
         self.wall = Wall("./img/wall.png")
         self.stage_number = 0
         self.load_stage()
         self.player_task = None
         self.ground_task = None
+        self.attacked_time = 0
 
     def load_stage(self):
         self.background = Background("./img/background0" + str(self.stage_number) + ".png")
@@ -133,6 +139,8 @@ class Tracker(Singleton):
             self.bullet_tasks.append(task)
         elif isinstance(task, PlayerBulletTask):
             self.player_bullet_tasks.append(task)
+        elif isinstance(task, ClearTask):
+            self.clear_tasks.append(task)
         else:
             raise TaskNotImplementedError
         task.generator = task.act()
@@ -143,6 +151,7 @@ class Tracker(Singleton):
         self.player_tasks = []
         self.bullet_tasks = [] 
         self.player_bullet_tasks = []
+        self.clear_tasks = []
 
     def delete_bullet_tasks(self):
         print("delete bullet")
@@ -220,6 +229,34 @@ class CountTask(ScreenTask):
             self.image.fill((0, 0, 0))
             self.counter += 1
             draw_count = str(self.counter)
+            left = (4 - len(draw_count)) * 16
+            i = 0
+            for digit in draw_count:
+                self.image.blit(self.base_images[int(digit)], (left + i * 16, 0))
+                i += 1
+            Tracker.instance().attacked_time = self.counter
+            yield True
+
+class ClearScoreTask(ClearTask):
+    def __init__(self):
+        Task.__init__(self)
+        base_image = load_image("./img/counter.png", -1)
+        self.base_images = []
+        for i in range(base_image.get_rect().w / 16):
+            surface = pygame.Surface((16, 16))
+            surface.blit(base_image, (0, 0), (16 * i, 0, 16, 16))
+            surface = surface.convert()
+            surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+            self.base_images.append(surface)
+        self.rect = pygame.Rect(120, 150, 16 * 4, 16)
+        self.image = pygame.Surface((16 * 4, 16)).convert()
+        self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
+        self.attacked_time = Tracker.instance().attacked_time
+
+    def act(self):
+        while True:
+            self.image.fill((0, 0, 0))
+            draw_count = str(self.attacked_time)
             left = (4 - len(draw_count)) * 16
             i = 0
             for digit in draw_count:
@@ -337,6 +374,8 @@ class Player(PlayerTask):
         self.image = self.walk[Motion.right_stop]
 
         self.is_pressed_bullet_key = False
+        self.is_clear = False
+        self.clear_counter = 0
 
         Tracker.instance().add_task(Balloon(self))
 
@@ -403,11 +442,14 @@ class Player(PlayerTask):
 
     def act(self):
         gameover = False
-        while True and not gameover:
+        while not gameover:
             self.keyevent()
             self.motion()
             if self.life <= 0:
                 gameover = True
+            if self.is_clear and self.clear_counter < 600:
+                Tracker.instance().add_task(ClearBulletTask(self))
+                self.clear_counter += 1
             yield True
         if gameover:
             import main
@@ -574,6 +616,25 @@ class PlayerBulletNormalTask(PlayerBulletTask):
             return False 
         return True
 
+class ClearBulletTask(PlayerBulletTask):
+    def __init__(self, player_task):
+        Task.__init__(self)
+        self.image = pygame.Surface((4, 4))
+        self.image.fill((random.randrange(256), random.randrange(256), random.randrange(256)))
+        self.rect.left = player_task.rect.left
+        self.rect.top = player_task.rect.top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+        self.player_task = player_task
+        self.counter = 0
+
+    def act(self):
+        while True:
+            self.counter += 1
+            self.rect.left = self.player_task.rect.left + math.sin(self.counter / math.pi / 1) * self.counter * 0.1
+            self.rect.top = self.player_task.rect.top + math.cos(self.counter / math.pi / 1) * self.counter * 0.1
+            yield True
+
 class SampleBossBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
@@ -637,7 +698,7 @@ class SinBulletTask(BulletTask):
 class SuperBulletTask(BulletTask):
     def __init__(self, boss_task):
         Task.__init__(self)
-        self.image = pygame.Surface((2, 2))
+        self.image = pygame.Surface((4, 4))
         self.rect.left = boss_task.rect.left
         self.rect.top = boss_task.rect.top
         self.rect.width = self.image.get_rect().width
@@ -713,6 +774,8 @@ class Boss0Task(EnemyTask):
                 Tracker.instance().add_task(Boss1Task(150, 150))
                 Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().player_task.life -= 1
+#                Tracker.instance().add_task(ClearScoreTask())
+#                Tracker.instance().player_task.is_clear = True
                 yield False
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
