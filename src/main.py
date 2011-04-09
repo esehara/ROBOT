@@ -39,8 +39,9 @@ class Game:
             surface = surface.convert()
             surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
             self.base_images.append(surface)
-   
-        for line in open('../data/highscore.dat','r'):
+  
+        import os 
+        for line in open(os.path.join(os.path.dirname(__file__), '../data/highscore.dat'),'r'):
             temp = line[:-1].split(':')
             self.highscore = temp[0]
             self.highstage = temp[1]
