@@ -352,7 +352,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.is_pressed_bullet_key = False
-        self.life = 99
+        self.life = 9
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -428,8 +428,6 @@ class Player(PlayerTask):
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
             self.is_pressed_bullet_key = False
-        if keyin[K_l]:
-            self.life += 1
 
     def motion(self):
         if self.is_jump_upping:
