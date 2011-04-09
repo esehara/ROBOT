@@ -376,7 +376,7 @@ class Player(PlayerTask):
             self.motion()
             yield True
 
-        def jump_up(self):
+    def jump_up(self):
         self.update_jump_status()
         jump_height = self.calculate_jump_height()
         cell_top = int(self.rect.top + jump_height) / 16
