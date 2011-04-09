@@ -756,7 +756,7 @@ class Boss2Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss3Task(200, 200))
+                    Tracker.instance().add_task(Boss3Task(50, 50))
                     yield False
                 yield True
             for i in range(30):
@@ -767,7 +767,7 @@ class Boss2Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss3Task(200, 200))
+                    Tracker.instance().add_task(Boss3Task(50, 50))
                     yield False
                 yield True
             
