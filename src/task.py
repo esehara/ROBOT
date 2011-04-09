@@ -403,11 +403,9 @@ class Player(PlayerTask):
 
         landscape = Tracker.instance().landscape
         if is_right:
-            print "right"
             is_collision_top = (landscape.wall_grid[cell_top][cell_left] > 0) and (landscape.wall_grid[cell_top][cell_right] > 0)
             is_collision_next_bottom = (landscape.wall_grid[next_cell_bottom][cell_left] > 0) and (landscape.wall_grid[next_cell_bottom][cell_right] > 0)
         else:
-            print "fuck!!"
             is_collision_top = landscape.wall_grid[cell_top][cell_left] > 0
             is_collision_next_bottom = landscape.wall_grid[next_cell_bottom][cell_left] > 0
         if not is_collision_top:
