@@ -22,8 +22,10 @@ class Game:
         self.pause_image = load_image("./img/pause.png", -1)
         x = Tracker.instance().stage.data["x"]
         y = Tracker.instance().stage.data["y"]
-        Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", x, y))
-        Tracker.instance().add_task(SampleBossTask(200, 160))
+        player_task = Player("./img/robot.png", "./img/robojump.png", x, y)
+        Tracker.instance().add_task(player_task)
+        Tracker.instance().player_task = player_task
+        Tracker.instance().add_task(Boss0Task(200, 160))
         ground_task = GroundTask()
         Tracker.instance().add_task(ground_task)
         Tracker.instance().ground_task = ground_task
