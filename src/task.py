@@ -65,6 +65,9 @@ class Task():
         self.generator = None
         self.is_deleted = False
 
+    def set_stage(self,stg):
+        Tracker.instance().stage = stg
+
     def act(self):
         raise NotImplementedError
 
@@ -373,7 +376,7 @@ class Player(PlayerTask):
             self.motion()
             yield True
 
-    def jump_up(self):
+        def jump_up(self):
         self.update_jump_status()
         jump_height = self.calculate_jump_height()
         cell_top = int(int(self.rect.top + jump_height) / 16)
@@ -493,7 +496,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         Task.__init__(self)
 
         self.image = load_image("./img/tama.png", -1)
-
+        
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
@@ -527,6 +530,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         else:
             return False 
         if Tracker.instance().detect_collision(SampleBossTask, self):
+            Tracker.instance().stage =+ 1
             return False
         return True
 
@@ -585,7 +589,7 @@ class SampleBossTask(EnemyTask):
                 self.rate = 0
                 self.walk_flag = True
                 self.image = self.images[self.walk_flag]
-                
+           
             for i in range(30):
                 self.rect.left += 1
                 if random.randrange(40) == 0:

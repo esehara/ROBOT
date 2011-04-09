@@ -31,6 +31,24 @@ class Game:
         self.is_pressed_pause_key = False
         self.temp_surface = pygame.Surface((320, 240)).convert()
 
+        base_image = load_image("./img/counter.png", -1)
+        self.base_images = []
+        for i in range(base_image.get_rect().w / 16):
+            surface = pygame.Surface((16, 16))
+            surface.blit(base_image, (0, 0), (16 * i, 0, 16, 16))
+            surface = surface.convert()
+            surface.set_colorkey(surface.get_at((0, 0)), RLEACCEL)
+            self.base_images.append(surface)
+   
+        for line in open('../data/highscore.dat','r'):
+            temp = line[:-1].split(':')
+            self.highscore = temp[0]
+            self.highstage = temp[1]
+
+        self.rect = pygame.Rect(16, 16, 16 * 4, 16)
+        self.image = pygame.Surface((16 * 4, 16)).convert()
+        self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
+        
     def update(self):
         if not self.pause_flag:
             Tracker.instance().act_all_tasks()
