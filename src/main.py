@@ -25,7 +25,7 @@ class Game:
         player_task = Player("./img/robot.png", "./img/robojump.png", x, y)
         Tracker.instance().add_task(player_task)
         Tracker.instance().player_task = player_task
-        Tracker.instance().add_task(Boss0Task(200, 160))
+        Tracker.instance().add_task(Boss0Task(180, 160))
         ground_task = GroundTask()
         Tracker.instance().add_task(ground_task)
         Tracker.instance().ground_task = ground_task
@@ -131,12 +131,10 @@ class Game:
 
     def gameOver(self):
         gameoverimage = load_image('./img/gameover.png', -1)
-        startimage = load_image('./img/pushstart.png',-1)
         
         while True:
             game.screen.fill(color_blue)
             game.screen.blit(gameoverimage, (10, 50))
-            game.screen.blit(startimage, (20,200))
 
             tmpSurface = pygame.Surface((320, 240))
             tmpSurface.blit(game.screen, (0, 0))
