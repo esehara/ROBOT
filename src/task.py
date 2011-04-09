@@ -104,7 +104,7 @@ class Tracker(Singleton):
             self.player_tasks,
             self.bullet_tasks,
             self.player_bullet_tasks]
-        self.stage = 0
+        self.stage = 2
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
@@ -483,7 +483,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
 class SampleBossBulletTask(BulletTask):
     def __init__(self, left, top, way):
         Task.__init__(self)
-        self.image = pygame.Surface((2, 2)).convert()
+        self.image = load_image("./img/gorem_tama.png", -1)
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
@@ -505,14 +505,37 @@ class SampleBossBulletTask(BulletTask):
 class SampleBossTask(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        self.image = pygame.Surface((16, 32)).convert()
+        self.image = load_image("./img/gorem.png", -1)
+        self.images = []
+        for i in range(2):
+            self.images.append(pygame.Surface((16, 32)))
+            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
+            self.images[i] = self.images[i].convert()
+
+        self.image = self.images[0]
+        
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
         self.rect.height = self.image.get_rect().height
 
+        self.walk_rate = 0
+        self.walk_flag = False
+
     def act(self):
         while True:
+            self.walk_rate +=1
+
+            if self.walk_flag:
+                self.rate = 0
+                self.walk_flag = False
+                self.image = self.images[self.walk_flag]
+            else:
+                self.rate = 0
+                self.walk_flag = True
+                self.image = self.images[self.walk_flag]
+                
             for i in range(30):
                 self.rect.left += 1
                 if random.randrange(40) == 0:

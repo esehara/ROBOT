@@ -49,8 +49,7 @@ class Game:
                 self.pause_flag = False
             else:
                 self.pause_flag = True
-                self.temp_surface = self.convert_to_girl(self.temp_surface).convert()
-                self.temp_surface.blit(self.pause_image, (70, 150))
+                self.temp_surface.blit(self.pause_image, (60 + random.randint(0,15), 140 + random.randint(0,15)))
         if not keyin[K_q] and self.is_pressed_pause_key:
             self.is_pressed_pause_key = False
 
