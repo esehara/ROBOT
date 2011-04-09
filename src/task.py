@@ -387,6 +387,10 @@ class Player(PlayerTask):
         while True:
             self.keyevent()
             self.motion()
+            if self.life == 0:
+                import main,sys
+                main.gameover()
+                sys.exit(0)
             if Tracker.instance().detect_collision(BulletTask, self, True):
                 self.life -= 1
             yield True
