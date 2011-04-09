@@ -590,8 +590,6 @@ class SampleBossBulletTask(BulletTask):
                     yield False
             yield True
 
-<<<<<<< HEAD
-=======
 class BossRingTask(BulletTask):
     def __init__(self, boss_task):
         Task.__init__(self)
@@ -612,7 +610,6 @@ class BossRingTask(BulletTask):
                 yield False
             yield True
 
->>>>>>> f1d8bda77ba6e2b75b1add42cfe871cc57bb1401
 class Boss0Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
