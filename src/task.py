@@ -135,6 +135,7 @@ class Tracker(Singleton):
             self.player_bullet_tasks.append(task)
         else:
             raise TaskNotImplementedError
+        print("act %s" % task)
         task.generator = task.act()
 
     def delete_bullet_tasks(self):
@@ -179,6 +180,7 @@ class Tracker(Singleton):
             horizontal_collision = (task.rect.left <= (actor_task.rect.left + actor_task.rect.w)) and (actor_task.rect.left <= (task.rect.left + task.rect.w))
             vertical_collision = (task.rect.top <= (actor_task.rect.top + actor_task.rect.w)) and (actor_task.rect.top <= (task.rect.top + task.rect.h))
             if horizontal_collision and vertical_collision:
+                print("detected collision")
                 is_collision = True
                 if is_delete:
                     task.is_deleted = True
@@ -281,7 +283,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.is_pressed_bullet_key = False
-        self.life = 9
+        self.life = 99
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -522,7 +524,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         Task.__init__(self)
 
         self.image = load_image("./img/tama.png", -1)
-        
+
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
@@ -530,6 +532,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         self.way = way
 
     def act(self):
+        print("PlayerBulletNormalTask act")
         while True:
             if self.way == Way.right:
                 self.rect.left += 4
