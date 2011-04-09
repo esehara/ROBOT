@@ -370,6 +370,8 @@ class Player(PlayerTask):
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
             self.is_pressed_bullet_key = False
+        if keyin[K_l]:
+            self.life += 1
 
     def motion(self):
         if self.is_jump_upping:
@@ -764,7 +766,7 @@ class Boss1Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss2Task(200, 150))
+                    Tracker.instance().add_task(Boss2Task(50, 50))
                     yield False
                 yield True
             for i in range(60):
@@ -776,7 +778,7 @@ class Boss1Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss2Task(200, 150))
+                    Tracker.instance().add_task(Boss2Task(50, 50))
                     yield False
                 yield True
 
@@ -818,7 +820,7 @@ class Boss2Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss3Task(200, 200))
+                    Tracker.instance().add_task(Boss3Task(200, 150))
                     yield False
                 yield True
             for i in range(30):
@@ -829,7 +831,7 @@ class Boss2Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss3Task(200, 200))
+                    Tracker.instance().add_task(Boss3Task(200, 150))
                     yield False
                 yield True
             
