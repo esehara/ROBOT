@@ -688,9 +688,30 @@ class Boss2Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-            yield True
 
-
+            for i in range(30):
+                self.rect.left += 1
+                if random.randrange(40) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss3Task(200, 200))
+                    yield False
+                yield True
+            for i in range(30):
+                self.rect.left -= 1
+                if random.randrange(25) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss3Task(200, 200))
+                    yield False
+                yield True
+            
 class Boss3Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
@@ -720,9 +741,28 @@ class Boss3Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-            yield True
-
-
+            for i in range(30):
+                self.rect.left += 1
+                if random.randrange(40) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss4Task(200, 200))
+                    yield False
+                yield True
+            for i in range(30):
+                self.rect.left -= 1
+                if random.randrange(25) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss4Task(200, 200))
+                    yield False
+                yield True
 
 class Boss4Task(EnemyTask):
     def __init__(self, left, top):
@@ -753,8 +793,28 @@ class Boss4Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-            yield True
-
+            for i in range(30):
+                self.rect.left += 1
+                if random.randrange(40) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss5Task(200, 200))
+                    yield False
+                yield True
+            for i in range(30):
+                self.rect.left -= 1
+                if random.randrange(25) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss5Task(200, 200))
+                    yield False
+                yield True
 
 class Boss5Task(EnemyTask):
     def __init__(self, left, top):
@@ -785,8 +845,28 @@ class Boss5Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-            yield True
-
+            for i in range(30):
+                self.rect.left += 1
+                if random.randrange(40) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss6Task(200, 200))
+                    yield False
+                yield True
+            for i in range(30):
+                self.rect.left -= 1
+                if random.randrange(25) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss6Task(200, 200))
+                    yield False
+                yield True
 
 class Boss6Task(EnemyTask):
     def __init__(self, left, top):
@@ -817,8 +897,29 @@ class Boss6Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-            yield True
 
+            for i in range(30):
+                self.rect.left += 1
+                if random.randrange(40) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss7Task(200, 200))
+                    yield False
+                yield True
+            for i in range(30):
+                self.rect.left -= 1
+                if random.randrange(25) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss7Task(200, 200))
+                    yield False
+                yield True
 
 class Boss7Task(EnemyTask):
     def __init__(self, left, top):
@@ -849,7 +950,29 @@ class Boss7Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-            yield True
+
+            for i in range(30):
+                self.rect.left += 1
+                if random.randrange(40) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss8Task(200, 200))
+                    yield False
+                yield True
+            for i in range(30):
+                self.rect.left -= 1
+                if random.randrange(25) == 0:
+                    Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
+                if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                    Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(Boss8Task(200, 200))
+                    yield False
+                yield True
 
 class Boss8Task(EnemyTask):
     def __init__(self, left, top):
@@ -880,5 +1003,7 @@ class Boss8Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
+            # last
             yield True
+
 
