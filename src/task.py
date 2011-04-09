@@ -160,7 +160,7 @@ class Tracker(Singleton):
             for task in task_container:
                 yield task
 
-    def detect_collision(self, target_parent, actor_task):
+    def detect_collision(self, target_parent, actor_task, is_delete = False):
         if issubclass(target_parent, ScreenTask):
             target_container = self.screen_tasks
         elif issubclass(target_parent, EnemyTask):
@@ -180,6 +180,8 @@ class Tracker(Singleton):
             vertical_collision = (task.rect.top <= (actor_task.rect.top + actor_task.rect.w)) and (actor_task.rect.top <= (task.rect.top + task.rect.h))
             if horizontal_collision and vertical_collision:
                 is_collision = True
+                if is_delete:
+                    task.is_deleted = True
         return is_collision
 
 class CountTask(ScreenTask):
@@ -385,6 +387,8 @@ class Player(PlayerTask):
         while True:
             self.keyevent()
             self.motion()
+            if Tracker.instance().detect_collision(BulletTask, self, True):
+                self.life -= 1
             yield True
 
     def jump_up(self):
@@ -594,9 +598,11 @@ class Boss0Task(EnemyTask):
         while True:
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
                 Tracker.instance().increment_stage()
+                Tracker.instance().add_task(Boss1Task(150, 150))
                 yield False
             if Tracker.instance().detect_collision(PlayerTask, self):
                 Tracker.instance().increment_stage()
+                Tracker.instance().add_task(Boss1Task(150, 150))
                 Tracker.instance().player_task.life -= 1
                 yield False
             self.counter += 1
@@ -646,7 +652,7 @@ class Boss1Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss2Task(200, 200))
+                    Tracker.instance().add_task(Boss2Task(200, 150))
                     yield False
                 yield True
             for i in range(30):
@@ -657,7 +663,7 @@ class Boss1Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss2Task(200, 200))
+                    Tracker.instance().add_task(Boss2Task(200, 150))
                     yield False
                 yield True
 
