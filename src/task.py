@@ -52,22 +52,18 @@ class Landscape():
         self.wall_grid = json.load(f)
         f.close()
 
+class Stage():
+    def __init__(self, filename):
+        f = open(filename)
+        self.data = json.load(f)
+        f.close()
+
 class Task():
     def __init__(self):
         self.image = None
         self.rect = Rect(0, 0, 0, 0)
         self.generator = None
         self.is_deleted = False
-        self.wall = Wall("./img/wall.png")
-        self.load_stage()
-
-    def get_stage(self):
-        return Tracker.instance().stage
-
-    def load_stage(self):
-        stage = self.get_stage()
-        self.background = Background("./img/background0" + str(stage) + ".png")
-        self.landscape = Landscape("./data/background0" + str(stage) + ".json", "./data/wall0" + str(stage) + ".json")
 
     def set_stage(self,stg):
         Tracker.instance().stage = stg
@@ -107,7 +103,19 @@ class Tracker(Singleton):
             self.player_tasks,
             self.bullet_tasks,
             self.player_bullet_tasks]
-        self.stage = 5
+        self.wall = Wall("./img/wall.png")
+        self.stage_number = 1
+        self.load_stage()
+
+    def load_stage(self):
+        self.background = Background("./img/background0" + str(self.stage_number) + ".png")
+        self.landscape = Landscape("./data/background0" + str(self.stage_number) + ".json", "./data/wall0" + str(self.stage_number) + ".json")
+        self.stage = Stage("./data/stage0" + str(self.stage_number) + ".json")
+
+    def increment_stage(self):
+        self.stage_number += 1
+        self.load_stage()
+        self.ground_task.load_images()
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
@@ -194,15 +202,19 @@ class CountTask(ScreenTask):
 class GroundTask(ScreenTask):
     def __init__(self):
         Task.__init__(self)
+        self.load_images()
+
+    def load_images(self):
         self.image = pygame.Surface((320, 240)).convert()
-        for y in range(len(self.landscape.background_grid)):
-            for x in range(len(self.landscape.background_grid[y])):
-                index = self.landscape.background_grid[y][x]
-                self.image.blit(self.background.images[index], (x * 16, y * 16))
-        for y in range(len(self.landscape.wall_grid)):
-            for x in range(len(self.landscape.wall_grid[y])):
-                index = self.landscape.wall_grid[y][x]
-                self.image.blit(self.wall.images[index], (x * 16, y * 16))
+        landscape = Tracker.instance().landscape
+        for y in range(len(landscape.background_grid)):
+            for x in range(len(landscape.background_grid[y])):
+                index = landscape.background_grid[y][x]
+                self.image.blit(Tracker.instance().background.images[index], (x * 16, y * 16))
+        for y in range(len(landscape.wall_grid)):
+            for x in range(len(landscape.wall_grid[y])):
+                index = landscape.wall_grid[y][x]
+                self.image.blit(Tracker.instance().wall.images[index], (x * 16, y * 16))
 
     def act(self):
         while True:
@@ -250,7 +262,7 @@ class Player(PlayerTask):
         base_images.append(load_image(filename))
         base_images.append(load_image(filename2))
 
-        self.rect = base_images[0].get_rect(topleft = (left, top))
+        self.rect = pygame.Rect(left, top, 0, 0)
         self.walk = {}
         self.way = Way.right
         self.walking = False
@@ -295,7 +307,6 @@ class Player(PlayerTask):
         self.walk.update({Motion.left_jump:surface})
 
         self.image = self.walk[Motion.right_stop]
-        self.rect.move_ip(120, 120)
 
         self.is_pressed_bullet_key = False
 
@@ -365,14 +376,15 @@ class Player(PlayerTask):
             self.motion()
             yield True
 
-    def jump_up(self):
+        def jump_up(self):
         self.update_jump_status()
         jump_height = self.calculate_jump_height()
         cell_top = int(self.rect.top + jump_height) / 16
         cell_left = self.rect.left / 16
         cell_right = (self.rect.right / 16) - 2
 
-        if not ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)):
+        landscape = Tracker.instance().landscape
+        if not ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)):
             self.rect.top -= jump_height
 
     def jump_down(self):
@@ -383,8 +395,9 @@ class Player(PlayerTask):
         cell_left = self.rect.left / 16
         cell_right = (self.rect.right / 16) - 2
 
-        is_collision_top = (self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)
-        is_collision_next_bottom = (self.landscape.wall_grid[next_cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[next_cell_bottom][cell_right] > 0)
+        landscape = Tracker.instance().landscape
+        is_collision_top = (landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)
+        is_collision_next_bottom = (landscape.wall_grid[next_cell_bottom][cell_left] > 0) or (landscape.wall_grid[next_cell_bottom][cell_right] > 0)
         if not is_collision_top:
             self.rect.top += jump_height
             if is_collision_next_bottom:
@@ -396,7 +409,8 @@ class Player(PlayerTask):
         cell_left = self.rect.left / 16
         cell_right = (self.rect.right / 16) - 2
 
-        if ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)):
+        landscape = Tracker.instance().landscape
+        if ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)):
             return True
         else:
             return False
@@ -421,14 +435,15 @@ class Player(PlayerTask):
         cell_bottom = ((self.rect.bottom + y) / 16 - 1)
         cell_right = ((self.rect.right + x) / 16) - 2
 
+        landscape = Tracker.instance().landscape
         if x < 0:
-            if not ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_left] > 0)):
+            if not ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_bottom][cell_left] > 0)):
                 return True
         if x > 0:
-            if not ((self.landscape.wall_grid[cell_top][cell_right] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
+            if not ((landscape.wall_grid[cell_top][cell_right] > 0) or (landscape.wall_grid[cell_bottom][cell_right] > 0)):
                 return True
         if y < 0:
-            if not ((self.landscape.wall_grid[cell_top][cell_left] > 0) or (self.landscape.wall_grid[cell_top][cell_right] > 0)):
+            if not ((landscape.wall_grid[cell_top][cell_left] > 0) or (landscape.wall_grid[cell_top][cell_right] > 0)):
                 return True
         return False
 
@@ -437,9 +452,10 @@ class Player(PlayerTask):
         cell_bottom = int(self.rect.top + 18) / 16
         cell_right = (self.rect.right / 16) - 2
 
-        if not ((self.landscape.wall_grid[cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
+        landscape = Tracker.instance().landscape
+        if not ((landscape.wall_grid[cell_bottom][cell_left] > 0) or (landscape.wall_grid[cell_bottom][cell_right] > 0)):
             return False
-        elif ((self.landscape.wall_grid[cell_bottom][cell_left] > 0) or (self.landscape.wall_grid[cell_bottom][cell_right] > 0)):
+        elif ((landscape.wall_grid[cell_bottom][cell_left] > 0) or (landscape.wall_grid[cell_bottom][cell_right] > 0)):
             return True
 
 class PlayerBulletNormalTask(PlayerBulletTask):
@@ -473,9 +489,10 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         cell_y = self.rect.top / 16
         cell_b = self.rect.bottom / 16
 
-        if (self.landscape.wall_grid[cell_y][cell_x] > 0):
+        landscape = Tracker.instance().landscape
+        if (landscape.wall_grid[cell_y][cell_x] > 0):
             return True
-        elif (self.landscape.wall_grid[cell_b][cell_x]>0):
+        elif (landscape.wall_grid[cell_b][cell_x]>0):
             return True
         else:
             return False 
@@ -545,14 +562,16 @@ class SampleBossTask(EnemyTask):
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
-                    pass
+                    Tracker.instance().increment_stage()
+                    yield False
                 yield True
             for i in range(30):
                 self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
-                    pass 
+                    Tracker.instance().increment_stage()
+                    yield False
                 yield True
 
 
