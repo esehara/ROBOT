@@ -111,7 +111,6 @@ class Tracker(Singleton):
         self.ground_task = None
 
     def load_stage(self):
-        print("loading stage: %s" % self.stage_number)
         self.background = Background("./img/background0" + str(self.stage_number) + ".png")
         self.landscape = Landscape("./data/background0" + str(self.stage_number) + ".json", "./data/wall0" + str(self.stage_number) + ".json")
         self.stage = Stage("./data/stage0" + str(self.stage_number) + ".json")
@@ -353,6 +352,7 @@ class Player(PlayerTask):
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
+            print('life is %d' % self.life)
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
@@ -390,8 +390,13 @@ class Player(PlayerTask):
         while True:
             self.keyevent()
             self.motion()
+            if self.life == 0:
+                import main,sys
+                main.gameover()
+                sys.exit(0)
             if Tracker.instance().detect_collision(BulletTask, self, True):
                 self.life -= 1
+                print('life is %d' % self.life)
             yield True
 
     def jump_up(self):
@@ -577,6 +582,26 @@ class SampleBossBulletTask(BulletTask):
                     yield False
             yield True
 
+class BossRingTask(BulletTask):
+    def __init__(self, boss_task):
+        Task.__init__(self)
+        self.image = pygame.Surface((2, 2))
+        self.rect.left = boss_task.rect.left
+        self.rect.top = boss_task.rect.top
+        self.rect.width = self.image.get_rect().width
+        self.rect.height = self.image.get_rect().height
+        self.boss_task = boss_task
+        self.counter = 0
+
+    def act(self):
+        while True:
+            self.counter += 1
+            self.rect.left = self.boss_task.rect.left + 5 + math.sin(self.counter / math.pi / 6) * 30
+            self.rect.top = self.boss_task.rect.top + math.cos(self.counter / math.pi / 6) * 4
+            if self.boss_task.is_deleted:
+                yield False
+            yield True
+
 class Boss0Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
@@ -617,11 +642,11 @@ class Boss0Task(EnemyTask):
 class Boss1Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        self.image = load_image("./img/gorem.png", -1)
+        self.image = load_image("./img/mons_slim.png", -1)
         self.images = []
         for i in range(2):
-            self.images.append(pygame.Surface((16, 32)))
-            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images.append(pygame.Surface((48, 64)))
+            self.images[i].blit(self.image, (0, 0), (i*48, 0, 48, 64))
             self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
             self.images[i] = self.images[i].convert()
 
@@ -634,6 +659,8 @@ class Boss1Task(EnemyTask):
 
         self.walk_rate = 0
         self.walk_flag = False
+
+        Tracker.instance().add_task(BossRingTask(self))
 
     def act(self):
         while True:
@@ -648,8 +675,9 @@ class Boss1Task(EnemyTask):
                 self.walk_flag = True
                 self.image = self.images[self.walk_flag]
 
-            for i in range(30):
-                self.rect.left += 1
+            for i in range(60):
+                if i % 2:
+                    self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
@@ -659,8 +687,9 @@ class Boss1Task(EnemyTask):
                     Tracker.instance().add_task(Boss2Task(200, 150))
                     yield False
                 yield True
-            for i in range(30):
-                self.rect.left -= 1
+            for i in range(60):
+                if i % 2:
+                    self.rect.left -= 1
                 if random.randrange(25) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
