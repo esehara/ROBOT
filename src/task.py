@@ -296,7 +296,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.is_pressed_bullet_key = False
-        self.life = 9
+        self.life = 99
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -706,11 +706,11 @@ class Boss0Task(EnemyTask):
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
                 Tracker.instance().increment_stage()
                 Tracker.instance().delete_player_bullet_tasks()
-                Tracker.instance().add_task(Boss1Task(150, 150))
+                Tracker.instance().add_task(Boss1Task(130, 180))
                 yield False
             if Tracker.instance().detect_collision(PlayerTask, self):
                 Tracker.instance().increment_stage()
-                Tracker.instance().add_task(Boss1Task(150, 150))
+                Tracker.instance().add_task(Boss1Task(130, 180))
                 Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().player_task.life -= 1
                 yield False
@@ -785,11 +785,11 @@ class Boss1Task(EnemyTask):
 class Boss2Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        self.image = load_image("./img/gorem.png", -1)
+        self.image = load_image("./img/slim.png", -1)
         self.images = []
         for i in range(2):
-            self.images.append(pygame.Surface((16, 32)))
-            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images.append(pygame.Surface((32, 32)))
+            self.images[i].blit(self.image, (0, 0), (i*32, 0, 32, 32))
             self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
             self.images[i] = self.images[i].convert()
 
@@ -838,11 +838,11 @@ class Boss2Task(EnemyTask):
 class Boss3Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        self.image = load_image("./img/gorem.png", -1)
+        self.image = load_image("./img/goast.png", -1)
         self.images = []
         for i in range(2):
-            self.images.append(pygame.Surface((16, 32)))
-            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images.append(pygame.Surface((16, 16)))
+            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 16))
             self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
             self.images[i] = self.images[i].convert()
 
@@ -872,7 +872,7 @@ class Boss3Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss4Task(200, 200))
+                    Tracker.instance().add_task(Boss4Task(250, 100))
                     yield False
                 yield True
             for i in range(30):
@@ -883,18 +883,18 @@ class Boss3Task(EnemyTask):
                     Tracker.instance().increment_stage()
                     Tracker.instance().delete_bullet_tasks()
                     Tracker.instance().delete_player_bullet_tasks()
-                    Tracker.instance().add_task(Boss4Task(200, 200))
+                    Tracker.instance().add_task(Boss4Task(250, 100))
                     yield False
                 yield True
 
 class Boss4Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        self.image = load_image("./img/gorem.png", -1)
+        self.image = load_image("./img/mons_toyoi.png", -1)
         self.images = []
         for i in range(2):
-            self.images.append(pygame.Surface((16, 32)))
-            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images.append(pygame.Surface((30, 40)))
+            self.images[i].blit(self.image, (0, 0), (i*30, 0, 30, 40))
             self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
             self.images[i] = self.images[i].convert()
 
