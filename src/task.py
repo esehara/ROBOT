@@ -139,10 +139,12 @@ class Tracker(Singleton):
         task.generator = task.act()
 
     def delete_bullet_tasks(self):
-        self.bullet_tasks = []
+        for task in self.bullet_tasks:
+            task.is_deleted = True
 
     def delete_player_bullet_tasks(self):
-        self.player_bullet_tasks = []
+        for task in self.player_bullet_tasks:
+            task.is_deleted = True
 
     def act_all_tasks(self):
         for task in self.get_all_tasks():
@@ -596,7 +598,7 @@ class BossRingTask(BulletTask):
     def act(self):
         while True:
             self.counter += 1
-            self.rect.left = self.boss_task.rect.left + 5 + math.sin(self.counter / math.pi / 6) * 30
+            self.rect.left = self.boss_task.rect.left + 25 + math.sin(self.counter / math.pi / 6) * 30
             self.rect.top = self.boss_task.rect.top + math.cos(self.counter / math.pi / 6) * 4
             if self.boss_task.is_deleted:
                 yield False
@@ -627,11 +629,13 @@ class Boss0Task(EnemyTask):
         while True:
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
                 Tracker.instance().increment_stage()
+                Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().add_task(Boss1Task(150, 150))
                 yield False
             if Tracker.instance().detect_collision(PlayerTask, self):
                 Tracker.instance().increment_stage()
                 Tracker.instance().add_task(Boss1Task(150, 150))
+                Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().player_task.life -= 1
                 yield False
             self.counter += 1
