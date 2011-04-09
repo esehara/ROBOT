@@ -25,7 +25,7 @@ class Game:
         player_task = Player("./img/robot.png", "./img/robojump.png", x, y)
         Tracker.instance().add_task(player_task)
         Tracker.instance().player_task = player_task
-        Tracker.instance().add_task(Boss0Task(200, 160))
+        Tracker.instance().add_task(Boss0Task(180, 160))
         ground_task = GroundTask()
         Tracker.instance().add_task(ground_task)
         Tracker.instance().ground_task = ground_task
