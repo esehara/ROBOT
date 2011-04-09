@@ -155,13 +155,15 @@ class Tracker(Singleton):
 
     def delete_bullet_tasks(self):
         print("delete bullet")
-        for task in self.bullet_tasks:
-            task.is_deleted = True
+        self.bullet_tasks = []
+#        for task in self.bullet_tasks:
+#            task.is_deleted = True
 
     def delete_player_bullet_tasks(self):
         print("delete player bullet")
-        for task in self.player_bullet_tasks:
-            task.is_deleted = True
+        self.player_bullet_tasks = []
+#        for task in self.player_bullet_tasks:
+#            task.is_deleted = True
 
     def act_all_tasks(self):
         for task in self.get_all_tasks():
