@@ -420,10 +420,17 @@ class Player(PlayerTask):
         cell_right = int(self.rect.right / 16) + 1
 
         landscape = Tracker.instance().landscape
-        if (landscape.wall_grid[cell_top][cell_left] == 0) and (landscape.wall_grid[cell_top][cell_right] == 0):
-            return False
+        is_right = True if self.rect.right % 16 else False
+        if is_right:
+            if (landscape.wall_grid[cell_top][cell_left] == 0) and (landscape.wall_grid[cell_top][cell_right] == 0):
+                return False
+            else:
+                return True
         else:
-            return True
+            if landscape.wall_grid[cell_top][cell_left] == 0:
+                return False
+            else:
+                return True
 
     def calculate_jump_height(self):
         height = self.last_jump_height - (self.base_x ** 2) / jumping_division
@@ -442,7 +449,7 @@ class Player(PlayerTask):
     def is_collision_side_wall(self, x):
         cell_top = int(self.rect.top / 16)
         cell_left = int((self.rect.left + x) / 16)
-        cell_bottom = int(self.rect.bottom / 16) + 1
+        cell_bottom = int((self.rect.bottom - 1) / 16) + 1
         cell_right = int((self.rect.right + x) / 16) + 1
         is_top = True if self.rect.top % 16 else False
 
@@ -454,6 +461,7 @@ class Player(PlayerTask):
                 else:
                     return False
             else:
+                print landscape.wall_grid[cell_top][cell_left], landscape.wall_grid[cell_bottom][cell_left]
                 if landscape.wall_grid[cell_bottom][cell_left] == 0:
                     return True
                 else:
