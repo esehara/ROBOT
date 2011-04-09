@@ -140,17 +140,23 @@ class Tracker(Singleton):
 
     def delete_bullet_tasks(self):
         print("delete bullet")
-        self.bullet_tasks = []
+        for task in self.bullet_tasks:
+            task.is_deleted = True
 
     def delete_player_bullet_tasks(self):
         print("delete player bullet")
-        self.player_bullet_tasks = []
+        for task in self.player_bullet_tasks:
+            task.is_deleted = True
 
     def act_all_tasks(self):
         for task in self.get_all_tasks():
-            ret = task.generator.next()
-            if ret == False:
-                task.is_deleted = True
+            try:
+                ret = task.generator.next()
+                if ret == False:
+                    task.is_deleted = True
+            except StopIteration, e:
+                for task in self.get_all_tasks():
+                    task.is_deleted = True
 
     def delete_tasks(self):
         for task_container in self.tasks_containers:
@@ -354,7 +360,7 @@ class Player(PlayerTask):
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
-            print('life is %d' % self.life)
+            print('[Player.keyevent] life is %d' % self.life)
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
@@ -389,17 +395,20 @@ class Player(PlayerTask):
             self.walkcount = 0
 
     def act(self):
-        while True:
+        gameover = False
+        while True and not gameover:
             self.keyevent()
             self.motion()
-            if self.life == 0:
-                import main,sys
-                main.gameover()
-                sys.exit(0)
+            if self.life <= 0:
+                gameover = True
             if Tracker.instance().detect_collision(BulletTask, self, True):
                 self.life -= 1
-                print('life is %d' % self.life)
+                print('[Player.act] life is %d' % self.life)
             yield True
+        if gameover:
+            import main
+            Tracker.instance().delete_all_tasks()
+            main.gameover()
 
     def jump_up(self):
         self.update_jump_status()
@@ -598,7 +607,7 @@ class BossRingTask(BulletTask):
     def act(self):
         while True:
             self.counter += 1
-            self.rect.left = self.boss_task.rect.left + 5 + math.sin(self.counter / math.pi / 6) * 30
+            self.rect.left = self.boss_task.rect.left + 25 + math.sin(self.counter / math.pi / 6) * 30
             self.rect.top = self.boss_task.rect.top + math.cos(self.counter / math.pi / 6) * 4
             if self.boss_task.is_deleted:
                 yield False
@@ -607,11 +616,11 @@ class BossRingTask(BulletTask):
 class Boss0Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        self.image = load_image("./img/gorem.png", -1)
+        self.image = load_image("./img/mons_stone.png", -1)
         self.images = []
         for i in range(2):
-            self.images.append(pygame.Surface((16, 32)))
-            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images.append(pygame.Surface((32, 64)))
+            self.images[i].blit(self.image, (0, 0), (i*32, 0, 32, 64))
             self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
             self.images[i] = self.images[i].convert()
 
@@ -629,11 +638,13 @@ class Boss0Task(EnemyTask):
         while True:
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
                 Tracker.instance().increment_stage()
+                Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().add_task(Boss1Task(150, 150))
                 yield False
             if Tracker.instance().detect_collision(PlayerTask, self):
                 Tracker.instance().increment_stage()
                 Tracker.instance().add_task(Boss1Task(150, 150))
+                Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().player_task.life -= 1
                 yield False
             self.counter += 1
