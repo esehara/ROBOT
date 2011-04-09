@@ -237,6 +237,16 @@ class CountTask(ScreenTask):
             Tracker.instance().attacked_time = self.counter
             yield True
 
+class ClearLogoTask(ClearTask):
+    def __init__(self):
+        Task.__init__(self)
+        self.image = load_image("./img/yourscore.png", -1)
+        self.rect = pygame.Rect(80, 80, self.image.get_rect().width, self.image.get_rect().height)
+
+    def act(self):
+        while True:
+            yield True
+
 class ClearScoreTask(ClearTask):
     def __init__(self):
         Task.__init__(self)
@@ -1182,6 +1192,7 @@ class Boss8Task(EnemyTask):
     def act(self):
         while True:
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
+                Tracker.instance().add_task(ClearLogoTask())
                 Tracker.instance().add_task(ClearScoreTask())
                 Tracker.instance().player_task.is_clear = True
                 yield False
