@@ -605,11 +605,11 @@ class BossRingTask(BulletTask):
 class Boss0Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
-        self.image = load_image("./img/gorem.png", -1)
+        self.image = load_image("./img/mons_stone.png", -1)
         self.images = []
         for i in range(2):
-            self.images.append(pygame.Surface((16, 32)))
-            self.images[i].blit(self.image, (0, 0), (i*16, 0, 16, 32))
+            self.images.append(pygame.Surface((32, 64)))
+            self.images[i].blit(self.image, (0, 0), (i*32, 0, 32, 64))
             self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
             self.images[i] = self.images[i].convert()
 
