@@ -111,7 +111,6 @@ class Tracker(Singleton):
         self.ground_task = None
 
     def load_stage(self):
-        print("loading stage: %s" % self.stage_number)
         self.background = Background("./img/background0" + str(self.stage_number) + ".png")
         self.landscape = Landscape("./data/background0" + str(self.stage_number) + ".json", "./data/wall0" + str(self.stage_number) + ".json")
         self.stage = Stage("./data/stage0" + str(self.stage_number) + ".json")
@@ -125,19 +124,14 @@ class Tracker(Singleton):
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
-            print("add ScreenTask")
             self.screen_tasks.append(task)
         elif isinstance(task, EnemyTask):
-            print("add EnemyTask")
             self.enemy_tasks.append(task)
         elif isinstance(task, PlayerTask):
-            print("add PlayerTask")
             self.player_tasks.append(task)
         elif isinstance(task, BulletTask):
-            print("add BulletTask")
             self.bullet_tasks.append(task)
         elif isinstance(task, PlayerBulletTask):
-            print("add PlayerBulletTask")
             self.player_bullet_tasks.append(task)
         else:
             raise TaskNotImplementedError
@@ -287,7 +281,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.is_pressed_bullet_key = False
-        self.life = 99
+        self.life = 9
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -356,6 +350,7 @@ class Player(PlayerTask):
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
+            print('life is %d' % self.life)
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
@@ -393,8 +388,13 @@ class Player(PlayerTask):
         while True:
             self.keyevent()
             self.motion()
+            if self.life == 0:
+                import main,sys
+                main.gameover()
+                sys.exit(0)
             if Tracker.instance().detect_collision(BulletTask, self, True):
                 self.life -= 1
+                print('life is %d' % self.life)
             yield True
 
     def jump_up(self):
