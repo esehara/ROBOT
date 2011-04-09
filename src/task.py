@@ -652,16 +652,16 @@ class SuperBulletTask(BulletTask):
                 yield False
             yield True
 
-class UmbrellaBulletTask(BulletTask):
+class UmbrellaBulletTask(BulletTask): # oops...
     def __init__(self, left, top):
         Task.__init__(self)
         surface = load_image("./img/umb_bullet.png", -1)
         self.images = []
-        for i in range(3):
+        for i in range(2):
             self.images.append(pygame.Surface((16, 16)))
             self.images[i].blit(surface, (0, 0), (i * 16, 0, 16, 16))
+            self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
             self.images[i] = self.images[i].convert()
-#            self.images[i].set_colorkey(self.images[i].get_at((0, 0)), RLEACCEL)
         self.image = self.images[0]
         self.base_top = top
         self.rect.left = left
@@ -674,7 +674,7 @@ class UmbrellaBulletTask(BulletTask):
         while True:
             self.counter += 1
             self.rect.left -= 3
-#            self.image = self.images[self.counter % 3]
+            self.image = self.images[self.counter % 2]
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 4
             yield True
 
@@ -716,8 +716,7 @@ class Boss0Task(EnemyTask):
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
             if random.randrange(10) == 0:
-#                Tracker.instance().add_task(SinBulletTask(self.rect.left, self.rect.top))
-                Tracker.instance().add_task(UmbrellaBulletTask(self.rect.left, self.rect.top))
+                Tracker.instance().add_task(SinBulletTask(self.rect.left, self.rect.top))
             yield True
 
 class Boss1Task(EnemyTask):
