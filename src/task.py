@@ -759,7 +759,7 @@ class Boss4Task(EnemyTask):
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 2) * 15
-           for i in range(30):
+            for i in range(30):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
@@ -834,7 +834,7 @@ class Boss5Task(EnemyTask):
                     yield False
                 yield True
 
- class Boss6Task(EnemyTask):
+class Boss6Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
         self.image = load_image("./img/gorem.png", -1)
@@ -940,7 +940,7 @@ class Boss7Task(EnemyTask):
                     yield False
                 yield True
 
- class Boss8Task(EnemyTask):
+class Boss8Task(EnemyTask):
     def __init__(self, left, top):
         Task.__init__(self)
         self.image = load_image("./img/gorem.png", -1)
