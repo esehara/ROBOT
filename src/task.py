@@ -132,6 +132,12 @@ class Tracker(Singleton):
             raise TaskNotImplementedError
         task.generator = task.act()
 
+    def delete_bullet_tasks(self):
+        self.bullet_tasks = []
+
+    def delete_player_bullet_tasks(self):
+        self.player_bullet_tasks = []
+
     def act_all_tasks(self):
         for task in self.get_all_tasks():
             ret = task.generator.next()
@@ -563,6 +569,9 @@ class SampleBossTask(EnemyTask):
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(SampleBossTask(200, 160))
                     yield False
                 yield True
             for i in range(30):
@@ -571,6 +580,9 @@ class SampleBossTask(EnemyTask):
                     Tracker.instance().add_task(SampleBossBulletTask(self.rect.left, self.rect.top + random.randrange(32), Way.left))
                 if Tracker.instance().detect_collision(PlayerBulletTask, self):
                     Tracker.instance().increment_stage()
+                    Tracker.instance().delete_bullet_tasks()
+                    Tracker.instance().delete_player_bullet_tasks()
+                    Tracker.instance().add_task(SampleBossTask(200, 160))
                     yield False
                 yield True
 
