@@ -163,12 +163,12 @@ class Tracker(Singleton):
         self.clear_tasks = []
 
     def delete_bullet_tasks(self):
-        print("delete bullet")
+#        print("delete bullet")
         for task in self.bullet_tasks:
             task.is_deleted = True
 
     def delete_player_bullet_tasks(self):
-        print("delete player bullet")
+#        print("delete player bullet")
         for task in self.player_bullet_tasks:
             task.is_deleted = True
 
@@ -352,7 +352,7 @@ class Player(PlayerTask):
         self.walking = False
         self.walkcount = 0
         self.is_pressed_bullet_key = False
-        self.life = 9
+        self.life = 99
         
         surface = pygame.Surface((16, 16))
         surface.blit(base_images[0], (0, 0), (0, 0, 16, 16))
@@ -423,7 +423,7 @@ class Player(PlayerTask):
         if keyin[K_x] and not self.is_pressed_bullet_key and self.life > 0:
             self.is_pressed_bullet_key = True
             self.life -= 1
-            print('life is %d' % self.life)
+#            print('life is %d' % self.life)
             way = Way.right if self.way == Way.right else Way.left
             Tracker.instance().add_task(PlayerBulletNormalTask(self.rect.left, self.rect.top, way))
         if not keyin[K_x] and self.is_pressed_bullet_key:
@@ -1242,6 +1242,8 @@ class Boss8Task(EnemyTask):
                     self.is_right = True
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 10) * 60
             self.rect.top = self.base_top + math.cos(self.counter / math.pi / 10) * 60
+            if Tracker.instance().detect_collision(BulletTask, Tracker.instance().player_task):
+                Tracker.instance().player_task.life -= 1
             if random.randrange(10) == 0:
                 Tracker.instance().add_task(SuperBulletTask(self))
             yield True
