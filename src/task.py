@@ -376,7 +376,7 @@ class Player(PlayerTask):
             self.motion()
             yield True
 
-        def jump_up(self):
+    def jump_up(self):
         self.update_jump_status()
         jump_height = self.calculate_jump_height()
         cell_top = int(int(self.rect.top + jump_height) / 16)
@@ -403,12 +403,12 @@ class Player(PlayerTask):
 
         landscape = Tracker.instance().landscape
         if is_right:
+            print "right"
             is_collision_top = (landscape.wall_grid[cell_top][cell_left] > 0) and (landscape.wall_grid[cell_top][cell_right] > 0)
-        else:
-            is_collision_top = landscape.wall_grid[cell_top][cell_left] > 0
-        if is_right:
             is_collision_next_bottom = (landscape.wall_grid[next_cell_bottom][cell_left] > 0) and (landscape.wall_grid[next_cell_bottom][cell_right] > 0)
         else:
+            print "fuck!!"
+            is_collision_top = landscape.wall_grid[cell_top][cell_left] > 0
             is_collision_next_bottom = landscape.wall_grid[next_cell_bottom][cell_left] > 0
         if not is_collision_top:
             self.rect.top += jump_height
