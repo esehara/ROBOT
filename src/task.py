@@ -137,6 +137,13 @@ class Tracker(Singleton):
             raise TaskNotImplementedError
         task.generator = task.act()
 
+    def delete_all_tasks(self):
+        self.screen_tasks = []
+        self.enemy_tasks = []
+        self.player_tasks = []
+        self.bullet_tasks = [] 
+        self.player_bullet_tasks = []
+
     def delete_bullet_tasks(self):
         print("delete bullet")
         for task in self.bullet_tasks:
