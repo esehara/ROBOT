@@ -774,8 +774,6 @@ class Boss0Task(EnemyTask):
                 Tracker.instance().add_task(Boss1Task(130, 180))
                 Tracker.instance().delete_player_bullet_tasks()
                 Tracker.instance().player_task.life -= 1
-#                Tracker.instance().add_task(ClearScoreTask())
-#                Tracker.instance().player_task.is_clear = True
                 yield False
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
@@ -1184,7 +1182,8 @@ class Boss8Task(EnemyTask):
     def act(self):
         while True:
             if Tracker.instance().detect_collision(PlayerBulletTask, self):
-                Tracker.instance().increment_stage()
+                Tracker.instance().add_task(ClearScoreTask())
+                Tracker.instance().player_task.is_clear = True
                 yield False
             self.counter += 1
             self.rect.left = self.base_left + math.sin(self.counter / math.pi / 2) * 15
