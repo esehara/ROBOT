@@ -69,6 +69,9 @@ class Task():
         self.background = Background("./img/background0" + str(stage) + ".png")
         self.landscape = Landscape("./data/background0" + str(stage) + ".json", "./data/wall0" + str(stage) + ".json")
 
+    def set_stage(self,stg):
+        Tracker.instance().stage = stg
+
     def act(self):
         raise NotImplementedError
 
@@ -104,7 +107,7 @@ class Tracker(Singleton):
             self.player_tasks,
             self.bullet_tasks,
             self.player_bullet_tasks]
-        self.stage = 2
+        self.stage = 5
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
@@ -444,7 +447,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         Task.__init__(self)
 
         self.image = load_image("./img/tama.png", -1)
-
+        
         self.rect.left = left
         self.rect.top = top
         self.rect.width = self.image.get_rect().width
@@ -477,6 +480,7 @@ class PlayerBulletNormalTask(PlayerBulletTask):
         else:
             return False 
         if Tracker.instance().detect_collision(SampleBossTask, self):
+            Tracker.instance().stage =+ 1
             return False
         return True
 
@@ -535,7 +539,7 @@ class SampleBossTask(EnemyTask):
                 self.rate = 0
                 self.walk_flag = True
                 self.image = self.images[self.walk_flag]
-                
+           
             for i in range(30):
                 self.rect.left += 1
                 if random.randrange(40) == 0:
