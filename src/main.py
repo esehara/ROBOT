@@ -24,7 +24,9 @@ class Game:
         y = Tracker.instance().stage.data["y"]
         Tracker.instance().add_task(Player("./img/robot.png", "./img/robojump.png", x, y))
         Tracker.instance().add_task(SampleBossTask(200, 160))
-        Tracker.instance().add_task(GroundTask())
+        ground_task = GroundTask()
+        Tracker.instance().add_task(ground_task)
+        Tracker.instance().ground_task = ground_task
         Tracker.instance().add_task(CountTask())
         self.is_pressed_pause_key = False
         self.temp_surface = pygame.Surface((320, 240)).convert()

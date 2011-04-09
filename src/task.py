@@ -112,6 +112,7 @@ class Tracker(Singleton):
     def increment_stage(self):
         self.stage_number += 1
         self.load_stage()
+        self.ground_task.load_images()
 
     def add_task(self, task):
         if isinstance(task, ScreenTask):
@@ -198,6 +199,9 @@ class CountTask(ScreenTask):
 class GroundTask(ScreenTask):
     def __init__(self):
         Task.__init__(self)
+        self.load_images()
+
+    def load_images(self):
         self.image = pygame.Surface((320, 240)).convert()
         landscape = Tracker.instance().landscape
         for y in range(len(landscape.background_grid)):
